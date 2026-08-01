@@ -1,0 +1,10 @@
+node_modules
+dist
+*.tsbuildinfo
+.playwright-mcp
+.DS_Store
+*.local
+
+# private planning material — never commit
+DOCS.md
+docs/

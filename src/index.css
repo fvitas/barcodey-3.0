@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Figtree Variable', system-ui, sans-serif;
+  --font-unbounded: 'Unbounded Variable', system-ui, sans-serif;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-stone-200 font-sans text-stone-900 antialiased;
+}
