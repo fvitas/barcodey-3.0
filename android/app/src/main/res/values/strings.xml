@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Barcodey</string>
+    <string name="title_activity_main">Barcodey</string>
+    <string name="package_name">com.filipvitas.barcodey</string>
+    <string name="custom_url_scheme">com.filipvitas.barcodey</string>
+</resources>
