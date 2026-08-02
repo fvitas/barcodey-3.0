@@ -2,7 +2,9 @@ import { FolderIcon, FolderPlusIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
+import { Input } from '@/components/ui/input'
 import { cardThemeGradients, type Card } from '@/lib/model'
+import { pressable } from '@/lib/utils'
 import { useWallet } from '@/state/wallet-context'
 
 const fanRotations = [-10, 6, 0]
@@ -60,17 +62,17 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">New folder</Drawer.Title>
 
-            <input
+            <Input
               value={name}
               placeholder="e.g. Groceries"
-              className="mb-5 w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
-              onChange={event => setName(event.target.value)}
+              className="mb-5 h-11 px-4 text-sm font-semibold"
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
             />
 
             <button
               onClick={handleCreate}
               disabled={name.trim() === ''}
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+              className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
               Create folder
             </button>
@@ -99,7 +101,7 @@ export function FoldersScreen() {
 
         <button
           onClick={() => setNewFolderOpen(true)}
-          className="flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
+          className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
           aria-label="New folder"
         >
           <FolderPlusIcon className="size-5" />
@@ -113,7 +115,7 @@ export function FoldersScreen() {
             <button
               key={folder.id}
               onClick={() => navigate(`/folders/${folder.id}`)}
-              className="rounded-2xl bg-card p-4 text-left shadow-sm"
+              className={`${pressable} rounded-2xl bg-card p-4 text-left shadow-sm`}
             >
               <FanPreview cards={folderCards} />
               <p className="truncate font-extrabold text-foreground">{folder.name}</p>
@@ -126,7 +128,7 @@ export function FoldersScreen() {
 
         <button
           onClick={() => setNewFolderOpen(true)}
-          className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-input text-sm font-semibold text-muted-foreground"
+          className={`${pressable} flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! text-sm font-semibold text-muted-foreground hover:text-foreground`}
         >
           <PlusIcon className="size-5" />
           New folder

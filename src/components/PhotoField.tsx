@@ -2,6 +2,7 @@ import { CameraIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CardPhotos, PhotoSide } from '@/lib/model'
 import { deletePhoto, loadPhotoSrc, savePhoto } from '@/lib/photos'
+import { pressable } from '@/lib/utils'
 
 export function usePhotoSrc(path: string | undefined): string | null {
   const [src, setSrc] = useState<string | null>(null)
@@ -47,7 +48,7 @@ function PhotoSlot({ side, path, onPick, onRemove }: PhotoSlotProps) {
       {path === undefined ? (
         <button
           onClick={() => inputRef.current?.click()}
-          className="flex size-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-input text-muted-foreground"
+          className={`${pressable} flex size-full flex-col items-center justify-center gap-1 rounded-xl border-2! border-dashed! border-input! text-muted-foreground hover:text-foreground`}
         >
           <CameraIcon className="size-4.5" />
           <span className="text-[0.625rem] font-semibold tracking-widest uppercase">{side}</span>
@@ -65,7 +66,7 @@ function PhotoSlot({ side, path, onPick, onRemove }: PhotoSlotProps) {
           <button
             onClick={() => onRemove(side)}
             aria-label={`Remove ${side} photo`}
-            className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-black/55 text-white"
+            className={`${pressable} absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/70`}
           >
             <XIcon className="size-3.5" />
           </button>

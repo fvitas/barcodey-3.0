@@ -14,6 +14,7 @@ import {
   type PhotoSide,
   type ViewMode,
 } from '@/lib/model'
+import { pressable } from '@/lib/utils'
 
 type PassPhotoProps = {
   side: PhotoSide
@@ -276,7 +277,7 @@ export function WallPass({
             <div className="grid grid-cols-3 gap-2 px-4 pb-4">
               <button
                 onClick={() => onToggleFavorite(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-muted py-2.5 text-sm font-semibold text-foreground/80"
+                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
               >
                 <StarIcon className={`size-4 ${card.favorite ? 'fill-amber-400 stroke-none' : ''}`} />
                 {card.favorite ? 'Unpin' : 'Favorite'}
@@ -284,7 +285,7 @@ export function WallPass({
 
               <button
                 onClick={() => onEdit(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-muted py-2.5 text-sm font-semibold text-foreground/80"
+                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
               >
                 <PencilIcon className="size-4" />
                 Edit
@@ -292,7 +293,7 @@ export function WallPass({
 
               <button
                 onClick={() => onDelete(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-white"
+                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-destructive py-2.5 text-sm font-semibold text-white hover:bg-destructive/80`}
               >
                 <Trash2Icon className="size-4" />
                 Remove

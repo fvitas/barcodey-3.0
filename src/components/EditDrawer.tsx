@@ -1,7 +1,10 @@
 import { Drawer } from 'vaul'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cardThemeGradients, cardThemes, formatLabels, type Card, type PhotoSide } from '@/lib/model'
+import { pressable } from '@/lib/utils'
 
 type EditDrawerProps = {
   card: Card | null
@@ -28,10 +31,12 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Name
                 </span>
-                <input
+                <Input
                   value={card.name}
-                  className="w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
-                  onChange={event => onChange(card.id, { name: event.target.value })}
+                  className="h-11 px-4 text-sm font-semibold"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    onChange(card.id, { name: event.target.value })
+                  }
                 />
               </label>
 
@@ -44,7 +49,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                     key={theme}
                     aria-label={theme}
                     onClick={() => onChange(card.id, { theme })}
-                    className={`size-9 rounded-full ${cardThemeGradients[theme]} ${
+                    className={`${pressable} size-9 rounded-full ${cardThemeGradients[theme]} ${
                       theme === card.theme ? 'ring-2 ring-foreground ring-offset-2 ring-offset-card' : ''
                     }`}
                   />
@@ -70,28 +75,28 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                   <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                     Cover
                   </span>
-                  <div className={`grid grid-cols-3 gap-1 rounded-xl bg-muted p-1 ${card.cover ? 'mb-4' : 'mb-5'}`}>
-                    {coverOptions.map(option => {
-                      const selected = option === 'none' ? card.cover === undefined : card.cover?.side === option
-                      const disabled = option !== 'none' && card.photos[option as PhotoSide] === undefined
-                      return (
-                        <button
+                  <Tabs
+                    value={card.cover?.side ?? 'none'}
+                    onValueChange={value =>
+                      onChange(card.id, {
+                        cover: value === 'none' ? undefined : { side: value as PhotoSide, scale: 1, x: 0, y: 0 },
+                      })
+                    }
+                    className={card.cover !== undefined ? 'mb-4' : 'mb-5'}
+                  >
+                    <TabsList className="h-11! w-full">
+                      {coverOptions.map(option => (
+                        <TabsTrigger
                           key={option}
-                          disabled={disabled}
-                          onClick={() =>
-                            onChange(card.id, {
-                              cover: option === 'none' ? undefined : { side: option, scale: 1, x: 0, y: 0 },
-                            })
-                          }
-                          className={`rounded-lg py-2 text-sm font-semibold capitalize disabled:opacity-40 ${
-                            selected ? 'bg-secondary text-secondary-foreground shadow-sm' : 'text-muted-foreground'
-                          }`}
+                          value={option}
+                          disabled={option !== 'none' && card.photos[option as PhotoSide] === undefined}
+                          className="font-semibold capitalize"
                         >
                           {option === 'none' ? 'Color' : option}
-                        </button>
-                      )
-                    })}
-                  </div>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
 
                   {card.cover !== undefined && coverSrc !== null && (
                     <div className="mb-5">
@@ -116,7 +121,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
 
               <button
                 onClick={onClose}
-                className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25"
+                className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
               >
                 Done
               </button>

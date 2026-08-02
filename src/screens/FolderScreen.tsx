@@ -5,8 +5,10 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { Drawer } from 'vaul'
 import { EditDrawer } from '@/components/EditDrawer'
 import { WallPass } from '@/components/WallPass'
+import { Input } from '@/components/ui/input'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { cardThemeGradients, type Card, type Folder } from '@/lib/model'
+import { pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -36,7 +38,7 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
                 <button
                   key={card.id}
                   onClick={() => onAdd(card.id)}
-                  className="flex w-full items-center gap-3 rounded-xl bg-muted/60 p-3 text-left"
+                  className={`${pressable} flex w-full items-center gap-3 rounded-xl bg-muted/60 p-3 text-left hover:bg-muted`}
                 >
                   <span
                     className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${cardThemeGradients[card.theme]}`}
@@ -86,16 +88,16 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
               <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                 Name
               </span>
-              <input
+              <Input
                 value={folder.name}
-                className="w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
-                onChange={event => onRename(event.target.value)}
+                className="h-11 px-4 text-sm font-semibold"
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => onRename(event.target.value)}
               />
             </label>
 
             <button
               onClick={onDelete}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 text-sm font-semibold text-white"
+              className={`${pressable} mb-3 flex w-full items-center justify-center gap-2 rounded-4xl bg-destructive py-3 text-sm font-semibold text-white hover:bg-destructive/80`}
             >
               <Trash2Icon className="size-4" />
               Delete folder
@@ -103,7 +105,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
 
             <button
               onClick={onClose}
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25"
+              className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
               Done
             </button>
@@ -166,7 +168,7 @@ export function FolderScreen() {
         <div className="flex min-w-0 items-center gap-2">
           <button
             onClick={() => navigate('/folders')}
-            className="-ml-2 flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground"
+            className={`${pressable} -ml-2 flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground`}
             aria-label="Back"
           >
             <ChevronLeftIcon className="size-6" />
@@ -181,7 +183,7 @@ export function FolderScreen() {
 
         <button
           onClick={() => setFolderEditOpen(true)}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm"
+          className={`${pressable} flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm hover:text-foreground`}
           aria-label="Edit folder"
         >
           <PencilIcon className="size-4.5" />
@@ -215,7 +217,7 @@ export function FolderScreen() {
 
         <button
           onClick={() => setAddCardsOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-input py-4 text-sm font-semibold text-muted-foreground"
+          className={`${pressable} flex items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! py-4 text-sm font-semibold text-muted-foreground hover:text-foreground`}
         >
           <PlusIcon className="size-4.5" />
           Add cards to this folder

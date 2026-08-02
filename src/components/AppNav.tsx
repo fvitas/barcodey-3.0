@@ -1,6 +1,7 @@
 import { FolderIcon, PlusIcon, WalletCardsIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useLocation, useNavigate } from 'react-router'
+import { pressable } from '@/lib/utils'
 
 type AppNavProps = {
   onAdd: () => void
@@ -18,8 +19,8 @@ function Tab({ label, Icon, active, onSelect }: TabProps) {
     <button
       onClick={onSelect}
       aria-label={label}
-      className={`relative flex w-16 items-center justify-center rounded-full py-3 ${
-        active ? 'text-primary' : 'text-muted-foreground/70'
+      className={`${pressable} relative flex w-16 items-center justify-center rounded-full py-3 ${
+        active ? 'text-primary' : 'text-muted-foreground/70 hover:text-muted-foreground'
       }`}
     >
       {active && (
@@ -47,7 +48,7 @@ export function AppNav({ onAdd }: AppNavProps) {
       <button
         onClick={onAdd}
         aria-label="Add card"
-        className="relative z-10 mx-2 flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+        className={`${pressable} relative z-10 mx-2 flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/80`}
       >
         <PlusIcon className="size-6" />
       </button>

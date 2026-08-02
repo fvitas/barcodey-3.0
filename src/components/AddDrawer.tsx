@@ -2,6 +2,9 @@ import { CameraIcon, SwitchCameraIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Drawer } from 'vaul'
 import { PhotoField } from '@/components/PhotoField'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { pressable } from '@/lib/utils'
 import {
   barcodeFormats,
   cardThemeGradients,
@@ -193,21 +196,16 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-4 text-lg font-extrabold text-foreground">Add card</Drawer.Title>
 
-            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-              {(['scan', 'manual'] as const).map(option => (
-                <button
-                  key={option}
-                  onClick={() => setMode(option)}
-                  className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    mode === option
-                      ? 'bg-secondary text-secondary-foreground shadow-sm'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {option === 'scan' ? 'Scan' : 'Manual'}
-                </button>
-              ))}
-            </div>
+            <Tabs value={mode} onValueChange={value => setMode(value as 'scan' | 'manual')} className="mb-5">
+              <TabsList className="h-11! w-full">
+                <TabsTrigger value="scan" className="font-semibold">
+                  Scan
+                </TabsTrigger>
+                <TabsTrigger value="manual" className="font-semibold">
+                  Manual
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
             {mode === 'scan' && scanResult === null && (
               <div className="mb-5">
@@ -216,7 +214,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 {hasNativeScanner && (
                   <button
                     onClick={handleNativeScan}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-foreground py-3 text-sm font-bold text-background"
+                    className={`${pressable} flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
                   >
                     <CameraIcon className="size-4.5" />
                     Open scanner
@@ -243,7 +241,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 </div>
                 <button
                   onClick={() => setScanResult(null)}
-                  className="shrink-0 pl-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400"
+                  className={`${pressable} shrink-0 rounded-full px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400`}
                 >
                   Rescan
                 </button>
@@ -256,11 +254,11 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                   <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                     Card number
                   </span>
-                  <input
+                  <Input
                     value={value}
                     placeholder="Type or paste the number"
-                    className="w-full rounded-xl bg-muted px-4 py-3 font-mono text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
-                    onChange={event => setValue(event.target.value)}
+                    className="h-11 px-4 font-mono text-sm font-medium"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setValue(event.target.value)}
                   />
                 </label>
 
@@ -272,10 +270,10 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     <button
                       key={option}
                       onClick={() => setFormat(option)}
-                      className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${
+                      className={`${pressable} rounded-full px-3.5 py-1.5 text-xs font-semibold ${
                         format === option
                           ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
+                          : 'bg-muted text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {formatLabels[option]}
@@ -291,11 +289,11 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                   <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                     Name
                   </span>
-                  <input
+                  <Input
                     value={name}
                     placeholder="e.g. Lidl Plus"
-                    className="w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
-                    onChange={event => setName(event.target.value)}
+                    className="h-11 px-4 text-sm font-semibold"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
                   />
                 </label>
 
@@ -308,7 +306,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                       key={option}
                       aria-label={option}
                       onClick={() => setTheme(option)}
-                      className={`size-9 rounded-full ${cardThemeGradients[option]} ${
+                      className={`${pressable} size-9 rounded-full ${cardThemeGradients[option]} ${
                         option === theme ? 'ring-2 ring-foreground ring-offset-2 ring-offset-card' : ''
                       }`}
                     />
@@ -327,7 +325,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             <button
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+              className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
               Add card
             </button>

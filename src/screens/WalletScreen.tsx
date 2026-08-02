@@ -32,9 +32,16 @@ import { useState } from 'react'
 import { EditDrawer } from '@/components/EditDrawer'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { WallPass } from '@/components/WallPass'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { sortCards, type Card, type SortMode, type ViewMode } from '@/lib/model'
 import { createSampleCard } from '@/lib/sample-card'
+import { pressable } from '@/lib/utils'
 import { useOpenAddDrawer } from '@/state/add-drawer-context'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
@@ -125,7 +132,7 @@ function EmptyState() {
 
       <button
         onClick={openAddDrawer}
-        className="flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30"
+        className={`${pressable} flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/80`}
       >
         <CameraIcon className="size-4.5" />
         Scan your first card
@@ -140,7 +147,6 @@ export function WalletScreen() {
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [sortOpen, setSortOpen] = useState(false)
 
   const searching = query.trim().length > 0
   const filteredCards = cards.filter(card => card.name.toLowerCase().includes(query.trim().toLowerCase()))
@@ -198,7 +204,7 @@ export function WalletScreen() {
             {import.meta.env.DEV && (
               <button
                 onClick={() => addCard(createSampleCard())}
-                className="flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm"
+                className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm`}
                 aria-label="Add sample card"
               >
                 <FlaskConicalIcon className="size-5" />
@@ -207,7 +213,7 @@ export function WalletScreen() {
 
             <button
               onClick={() => update({ view: state.view === 'list' ? 'grid' : 'list' })}
-              className="flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
+              className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
               aria-label="Toggle view"
             >
               {state.view === 'list' ? <LayoutGridIcon className="size-5" /> : <Rows3Icon className="size-5" />}
@@ -215,7 +221,7 @@ export function WalletScreen() {
 
             <button
               onClick={() => setSettingsOpen(true)}
-              className="flex size-10 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm"
+              className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm hover:text-foreground`}
               aria-label="Settings"
             >
               <SettingsIcon className="size-5" />
@@ -223,57 +229,40 @@ export function WalletScreen() {
           </div>
         </div>
 
-        <div className="relative">
-          <div className="flex items-center gap-2.5 rounded-full bg-card py-1.5 pr-1.5 pl-4 shadow-sm">
-            <SearchIcon className="size-4.5 shrink-0 text-muted-foreground/70" />
-            <input
-              value={query}
-              placeholder="Search cards"
-              className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-muted-foreground/70"
-              onChange={handleQueryChange}
-            />
+        <div className="flex items-center gap-2.5 rounded-full border border-transparent bg-card py-1.5 pr-1.5 pl-4 shadow-sm transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30">
+          <SearchIcon className="size-4.5 shrink-0 text-muted-foreground/70" />
+          <input
+            value={query}
+            placeholder="Search cards"
+            className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-muted-foreground"
+            onChange={handleQueryChange}
+          />
 
-            <button
-              onClick={() => setSortOpen(current => !current)}
-              aria-label="Sort"
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-muted py-2 pr-3 pl-2.5 text-xs font-semibold text-muted-foreground"
-            >
-              <currentSort.Icon className="size-4" />
-              {currentSort.label}
-            </button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="Sort"
+                className={`${pressable} flex shrink-0 items-center gap-1.5 rounded-full bg-muted py-2 pr-3 pl-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground`}
+              >
+                <currentSort.Icon className="size-4" />
+                {currentSort.label}
+              </button>
+            </DropdownMenuTrigger>
 
-          <AnimatePresence>
-            {sortOpen && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setSortOpen(false)} />
-                <motion.div
-                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 z-40 mt-2 w-44 rounded-2xl bg-popover p-1.5 shadow-xl shadow-slate-900/15"
+            <DropdownMenuContent align="end" sideOffset={8}>
+              {sortModes.map(mode => (
+                <DropdownMenuItem
+                  key={mode.id}
+                  onSelect={() => update({ sort: mode.id })}
+                  className="gap-2.5 font-semibold"
                 >
-                  {sortModes.map(mode => (
-                    <button
-                      key={mode.id}
-                      onClick={() => {
-                        update({ sort: mode.id })
-                        setSortOpen(false)
-                      }}
-                      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                        state.sort === mode.id ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      <mode.Icon className="size-4" />
-                      {mode.label}
-                      {state.sort === mode.id && <CheckIcon className="ml-auto size-4 text-primary" />}
-                    </button>
-                  ))}
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
+                  <mode.Icon className="size-4" />
+                  {mode.label}
+                  {state.sort === mode.id && <CheckIcon className="ml-auto size-4 text-primary" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

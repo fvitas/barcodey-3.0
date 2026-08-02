@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react'
 import { Drawer } from 'vaul'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
 import { walletSchema, type Wallet } from '@/lib/model'
+import { pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -78,40 +80,36 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Appearance
             </span>
-            <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
-              {appearances.map(option => (
-                <button
-                  key={option}
-                  onClick={() => update({ appearance: option })}
-                  className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    state.appearance === option
-                      ? 'bg-secondary text-secondary-foreground shadow-sm'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              value={state.appearance}
+              onValueChange={value => update({ appearance: value as (typeof appearances)[number] })}
+              className="mb-5"
+            >
+              <TabsList className="h-11! w-full">
+                {appearances.map(option => (
+                  <TabsTrigger key={option} value={option} className="font-semibold capitalize">
+                    {option}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               View
             </span>
-            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-              {views.map(option => (
-                <button
-                  key={option}
-                  onClick={() => update({ view: option })}
-                  className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    state.view === option
-                      ? 'bg-secondary text-secondary-foreground shadow-sm'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              value={state.view}
+              onValueChange={value => update({ view: value as (typeof views)[number] })}
+              className="mb-5"
+            >
+              <TabsList className="h-11! w-full">
+                {views.map(option => (
+                  <TabsTrigger key={option} value={option} className="font-semibold capitalize">
+                    {option}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Backup
@@ -119,13 +117,13 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             <div className="mb-6 grid grid-cols-2 gap-2">
               <button
                 onClick={handleExport}
-                className="rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80"
+                className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
               >
                 Export cards
               </button>
               <button
                 onClick={() => importInputRef.current?.click()}
-                className="rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80"
+                className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
               >
                 Import backup
               </button>
@@ -166,13 +164,13 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setPendingImport(null)}
-                  className="rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80"
+                  className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmImport}
-                  className="rounded-xl bg-destructive py-3 text-sm font-semibold text-white"
+                  className={`${pressable} rounded-4xl bg-destructive py-3 text-sm font-semibold text-white hover:bg-destructive/80`}
                 >
                   Import
                 </button>
