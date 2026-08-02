@@ -9,6 +9,7 @@ type WalletContextValue = {
   addCard: (card: Card) => void
   updateCard: (id: string, patch: Partial<Omit<Card, 'id'>>) => void
   removeCard: (id: string) => void
+  moveCard: (activeId: string, overId: string) => void
   createFolder: (name: string) => Folder
   renameFolder: (id: string, name: string) => void
   removeFolder: (id: string) => void
@@ -50,6 +51,19 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   function removeCard(id: string) {
     setWallet(current => ({ ...current, cards: current.cards.filter(card => card.id !== id) }))
+  }
+
+  // manual order = array order in wallet.json
+  function moveCard(activeId: string, overId: string) {
+    setWallet(current => {
+      const from = current.cards.findIndex(card => card.id === activeId)
+      const to = current.cards.findIndex(card => card.id === overId)
+      if (from === -1 || to === -1 || from === to) return current
+      const cards = [...current.cards]
+      const [moved] = cards.splice(from, 1)
+      cards.splice(to, 0, moved)
+      return { ...current, cards }
+    })
   }
 
   function createFolder(name: string): Folder {
@@ -94,6 +108,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         addCard,
         updateCard,
         removeCard,
+        moveCard,
         createFolder,
         renameFolder,
         removeFolder,

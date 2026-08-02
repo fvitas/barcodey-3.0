@@ -1,4 +1,19 @@
 import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  rectSortingStrategy,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
   CalendarArrowDownIcon,
@@ -18,7 +33,7 @@ import { EditDrawer } from '@/components/EditDrawer'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { WallPass } from '@/components/WallPass'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
-import { sortCards, type SortMode } from '@/lib/model'
+import { sortCards, type Card, type SortMode, type ViewMode } from '@/lib/model'
 import { createSampleCard } from '@/lib/sample-card'
 import { useOpenAddDrawer } from '@/state/add-drawer-context'
 import { useUiState } from '@/state/ui-state-context'
@@ -31,6 +46,52 @@ const sortModes: { id: SortMode; label: string; Icon: typeof GripVerticalIcon }[
   { id: 'newest', label: 'Newest', Icon: CalendarArrowDownIcon },
   { id: 'oldest', label: 'Oldest', Icon: CalendarArrowUpIcon },
 ]
+
+type SortablePassProps = {
+  card: Card
+  active: boolean
+  view: ViewMode
+  draggable: boolean
+  onToggle: (id: string) => void
+  onEdit: (id: string) => void
+  onDelete: (id: string) => void
+  onToggleFavorite: (id: string) => void
+}
+
+function SortablePass({ card, active, view, draggable, ...passProps }: SortablePassProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: card.id,
+    disabled: !draggable,
+  })
+
+  // list drags from the grip handle; grid tiles drag as a whole (press-and-hold sensor)
+  const gridDrag = draggable && view === 'grid' && !active
+  const gripHandle = draggable && (view === 'list' || active) && (
+    <button
+      {...attributes}
+      {...listeners}
+      aria-label="Reorder"
+      className="relative -ml-1 shrink-0 cursor-grab touch-none p-1 text-white/60 active:cursor-grabbing"
+    >
+      <GripVerticalIcon className="size-5" />
+    </button>
+  )
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        touchAction: gridDrag ? 'manipulation' : undefined,
+      }}
+      className={`${isDragging ? 'relative z-20' : ''} ${view === 'grid' && active ? 'col-span-2' : ''}`}
+      {...(gridDrag ? { ...attributes, ...listeners } : {})}
+    >
+      <WallPass card={card} active={active} view={view} leading={gripHandle || undefined} {...passProps} />
+    </div>
+  )
+}
 
 function EmptyState() {
   const openAddDrawer = useOpenAddDrawer()
@@ -74,7 +135,7 @@ function EmptyState() {
 }
 
 export function WalletScreen() {
-  const { cards, addCard, updateCard, removeCard } = useWallet()
+  const { cards, addCard, updateCard, removeCard, moveCard } = useWallet()
   const { state, update } = useUiState()
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -87,8 +148,21 @@ export function WalletScreen() {
 
   const editingCard = cards.find(card => card.id === editingId) ?? null
   const currentSort = sortModes.find(mode => mode.id === state.sort) ?? sortModes[0]
+  const draggable = state.sort === 'manual' && !searching
+
+  // grid tiles drag as a whole, so a press-and-hold keeps taps working; the list grip needs no delay
+  const listSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const gridSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
+  )
 
   useBrightnessBoost(state.expandedCardId !== null)
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (over === null || active.id === over.id) return
+    moveCard(String(active.id), String(over.id))
+  }
 
   function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
     setQuery(event.target.value)
@@ -204,22 +278,34 @@ export function WalletScreen() {
       </header>
 
       <main className="px-5 pb-32">
-        <div className={state.view === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
-          <AnimatePresence initial={false}>
-            {visibleCards.map(card => (
-              <WallPass
-                key={card.id}
-                card={card}
-                active={card.id === state.expandedCardId}
-                view={state.view}
-                onToggle={handleToggle}
-                onEdit={setEditingId}
-                onDelete={handleDelete}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <DndContext
+          sensors={state.view === 'grid' ? gridSensors : listSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={visibleCards.map(card => card.id)}
+            strategy={state.view === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+          >
+            <div className={state.view === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
+              <AnimatePresence initial={false}>
+                {visibleCards.map(card => (
+                  <SortablePass
+                    key={card.id}
+                    card={card}
+                    active={card.id === state.expandedCardId}
+                    view={state.view}
+                    draggable={draggable}
+                    onToggle={handleToggle}
+                    onEdit={setEditingId}
+                    onDelete={handleDelete}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {visibleCards.length === 0 && searching && (
           <p className="mt-16 text-center text-sm font-medium text-muted-foreground">No cards match “{query}”</p>

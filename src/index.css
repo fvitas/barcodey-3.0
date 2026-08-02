@@ -128,6 +128,51 @@ body {
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* dark palette candidates — decision pending (see DOCS). Inert unless the class is
+   added next to .dark on <html>; the dev switcher that toggled them lives in git
+   history (App.tsx, DarkMockupSwitcher). Current .dark = slate. */
+.dark.dark-graphite {
+  --background: oklch(0.141 0.005 285.823); /* zinc-950 — pure neutral, no blue cast */
+  --card: oklch(0.21 0.006 285.885); /* zinc-900 */
+  --popover: oklch(0.21 0.006 285.885);
+  --secondary: oklch(0.442 0.017 285.786); /* zinc-600 */
+  --muted: oklch(0.274 0.006 286.033); /* zinc-800 */
+  --muted-foreground: oklch(0.705 0.015 286.067); /* zinc-400 */
+  --border: oklch(0.37 0.013 285.805); /* zinc-700 */
+  --input: oklch(0.37 0.013 285.805);
+}
+
+.dark.dark-oled {
+  --background: oklch(0 0 0); /* pitch black — gradients pop, OLED battery win */
+  --card: oklch(0.19 0.04 265);
+  --popover: oklch(0.19 0.04 265);
+  --muted: oklch(0.26 0.04 262);
+  --border: oklch(0.35 0.045 258);
+  --input: oklch(0.35 0.045 258);
+}
+
+.dark.dark-midnight {
+  --background: oklch(0.16 0.085 262); /* navy-tinted — leans into the blue brand */
+  --card: oklch(0.235 0.095 262);
+  --popover: oklch(0.235 0.095 262);
+  --secondary: oklch(0.48 0.11 260);
+  --muted: oklch(0.31 0.09 261);
+  --muted-foreground: oklch(0.74 0.055 255);
+  --border: oklch(0.42 0.09 259);
+  --input: oklch(0.42 0.09 259);
+}
+
+.dark.dark-charcoal {
+  --background: oklch(0.155 0.012 65); /* warm charcoal — softer, browner gray */
+  --card: oklch(0.225 0.015 60);
+  --popover: oklch(0.225 0.015 60);
+  --secondary: oklch(0.46 0.025 60);
+  --muted: oklch(0.29 0.016 55);
+  --muted-foreground: oklch(0.72 0.02 60);
+  --border: oklch(0.39 0.02 55);
+  --input: oklch(0.39 0.02 55);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

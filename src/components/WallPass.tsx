@@ -14,6 +14,7 @@ type WallPassProps = {
   card: Card
   active: boolean
   view: ViewMode
+  leading?: React.ReactNode
   trailing?: React.ReactNode
   onToggle: (id: string) => void
   onEdit: (id: string) => void
@@ -25,6 +26,7 @@ export function WallPass({
   card,
   active,
   view,
+  leading,
   trailing,
   onToggle,
   onEdit,
@@ -98,6 +100,8 @@ export function WallPass({
               </>
             )}
           </AnimatePresence>
+
+          {leading}
 
           <button
             onClick={() => onToggle(card.id)}
