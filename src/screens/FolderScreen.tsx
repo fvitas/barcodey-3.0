@@ -23,11 +23,11 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-white outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3 pb-8">
-            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-slate-300" />
-            <Drawer.Title className="mb-1 text-lg font-extrabold text-slate-900">Add cards</Drawer.Title>
-            <p className="mb-5 text-xs font-medium text-slate-400">
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+            <Drawer.Title className="mb-1 text-lg font-extrabold text-foreground">Add cards</Drawer.Title>
+            <p className="mb-5 text-xs font-medium text-muted-foreground/80">
               A card lives in one folder — only unfiled cards are shown
             </p>
 
@@ -36,22 +36,22 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
                 <button
                   key={card.id}
                   onClick={() => onAdd(card.id)}
-                  className="flex w-full items-center gap-3 rounded-xl bg-slate-50 p-3 text-left"
+                  className="flex w-full items-center gap-3 rounded-xl bg-muted/60 p-3 text-left"
                 >
                   <span
                     className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${cardThemeGradients[card.theme]}`}
                   >
                     {card.name.charAt(0).toUpperCase()}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
                     {card.name}
                   </span>
-                  <PlusIcon className="size-4.5 shrink-0 text-blue-600" />
+                  <PlusIcon className="size-4.5 shrink-0 text-primary" />
                 </button>
               ))}
 
               {unfiledCards.length === 0 && (
-                <p className="py-6 text-center text-sm font-medium text-slate-400">
+                <p className="py-6 text-center text-sm font-medium text-muted-foreground">
                   Every card is already in a folder
                 </p>
               )}
@@ -77,25 +77,25 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-white outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3 pb-8">
-            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-slate-300" />
-            <Drawer.Title className="mb-5 text-lg font-extrabold text-slate-900">Edit folder</Drawer.Title>
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+            <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Edit folder</Drawer.Title>
 
             <label className="mb-5 block">
-              <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                 Name
               </span>
               <input
                 value={folder.name}
-                className="w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
                 onChange={event => onRename(event.target.value)}
               />
             </label>
 
             <button
               onClick={onDelete}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white"
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 text-sm font-semibold text-white"
             >
               <Trash2Icon className="size-4" />
               Delete folder
@@ -103,7 +103,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
 
             <button
               onClick={onClose}
-              className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/25"
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25"
             >
               Done
             </button>
@@ -161,19 +161,19 @@ export function FolderScreen() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-[26rem] bg-slate-100">
+    <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
       <header className="flex items-center justify-between px-5 pt-8 pb-5">
         <div className="flex min-w-0 items-center gap-2">
           <button
             onClick={() => navigate('/folders')}
-            className="-ml-2 flex size-10 shrink-0 items-center justify-center rounded-full text-slate-500"
+            className="-ml-2 flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground"
             aria-label="Back"
           >
             <ChevronLeftIcon className="size-6" />
           </button>
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900">{folder.name}</h1>
-            <p className="text-xs font-medium text-slate-400">
+            <h1 className="truncate text-2xl font-extrabold tracking-tight text-foreground">{folder.name}</h1>
+            <p className="text-xs font-medium text-muted-foreground/80">
               {folderCards.length} {folderCards.length === 1 ? 'card' : 'cards'}
             </p>
           </div>
@@ -181,7 +181,7 @@ export function FolderScreen() {
 
         <button
           onClick={() => setFolderEditOpen(true)}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm"
           aria-label="Edit folder"
         >
           <PencilIcon className="size-4.5" />
@@ -215,7 +215,7 @@ export function FolderScreen() {
 
         <button
           onClick={() => setAddCardsOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 py-4 text-sm font-semibold text-slate-500"
+          className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-input py-4 text-sm font-semibold text-muted-foreground"
         >
           <PlusIcon className="size-4.5" />
           Add cards to this folder

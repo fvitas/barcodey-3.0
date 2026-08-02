@@ -57,21 +57,23 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-white outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3 pb-8">
-            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-slate-300" />
-            <Drawer.Title className="mb-5 text-lg font-extrabold text-slate-900">Settings</Drawer.Title>
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+            <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Settings</Drawer.Title>
 
-            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Appearance
             </span>
-            <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
+            <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
               {appearances.map(option => (
                 <button
                   key={option}
                   onClick={() => update({ appearance: option })}
                   className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    state.appearance === option ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                    state.appearance === option
+                      ? 'bg-secondary text-secondary-foreground shadow-sm'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   {option}
@@ -79,16 +81,18 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               ))}
             </div>
 
-            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               View
             </span>
-            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
               {views.map(option => (
                 <button
                   key={option}
                   onClick={() => update({ view: option })}
                   className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    state.view === option ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                    state.view === option
+                      ? 'bg-secondary text-secondary-foreground shadow-sm'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   {option}
@@ -96,19 +100,19 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               ))}
             </div>
 
-            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Backup
             </span>
             <div className="mb-6 grid grid-cols-2 gap-2">
               <button
                 onClick={handleExport}
-                className="rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-700"
+                className="rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80"
               >
                 Export cards
               </button>
               <button
                 onClick={() => importInputRef.current?.click()}
-                className="rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-700"
+                className="rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80"
               >
                 Import backup
               </button>
@@ -121,7 +125,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               onChange={handleImportFile}
             />
 
-            <p className="text-center text-xs font-medium text-slate-400">Barcodey 3.0</p>
+            <p className="text-center text-xs font-medium text-muted-foreground/80">Barcodey 3.0</p>
           </div>
         </Drawer.Content>
       </Drawer.Portal>

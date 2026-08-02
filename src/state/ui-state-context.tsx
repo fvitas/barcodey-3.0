@@ -29,10 +29,16 @@ export function UiStateProvider({ children }: { children: React.ReactNode }) {
   }, [ready, state])
 
   useEffect(() => {
-    const dark =
-      state.appearance === 'dark' ||
-      (state.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    document.documentElement.classList.toggle('dark', dark)
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+
+    function apply() {
+      const dark = state.appearance === 'dark' || (state.appearance === 'system' && media.matches)
+      document.documentElement.classList.toggle('dark', dark)
+    }
+
+    apply()
+    media.addEventListener('change', apply)
+    return () => media.removeEventListener('change', apply)
   }, [state.appearance])
 
   function update(patch: Partial<UiState>) {

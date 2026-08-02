@@ -179,18 +179,20 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-white outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3 pb-8">
-            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-slate-300" />
-            <Drawer.Title className="mb-4 text-lg font-extrabold text-slate-900">Add card</Drawer.Title>
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+            <Drawer.Title className="mb-4 text-lg font-extrabold text-foreground">Add card</Drawer.Title>
 
-            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+            <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
               {(['scan', 'manual'] as const).map(option => (
                 <button
                   key={option}
                   onClick={() => setMode(option)}
                   className={`rounded-lg py-2 text-sm font-semibold capitalize ${
-                    mode === option ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                    mode === option
+                      ? 'bg-secondary text-secondary-foreground shadow-sm'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   {option === 'scan' ? 'Scan' : 'Manual'}
@@ -205,7 +207,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 {hasNativeScanner && (
                   <button
                     onClick={handleNativeScan}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-bold text-white"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-foreground py-3 text-sm font-bold text-background"
                   >
                     <CameraIcon className="size-4.5" />
                     Open scanner
@@ -213,7 +215,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 )}
 
                 {!hasNativeScanner && (
-                  <p className="text-center text-xs font-medium text-slate-400">
+                  <p className="text-center text-xs font-medium text-muted-foreground/80">
                     Point the camera at a barcode — it detects automatically
                   </p>
                 )}
@@ -221,18 +223,18 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             )}
 
             {mode === 'scan' && scanResult !== null && (
-              <div className="mb-5 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3">
+              <div className="mb-5 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-wider text-emerald-600 uppercase">
+                  <p className="text-xs font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
                     Detected · {formatLabels[scanResult.format]}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-slate-700">
+                  <p className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-foreground/80">
                     {scanResult.value}
                   </p>
                 </div>
                 <button
                   onClick={() => setScanResult(null)}
-                  className="shrink-0 pl-3 text-xs font-semibold text-emerald-700"
+                  className="shrink-0 pl-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400"
                 >
                   Rescan
                 </button>
@@ -242,18 +244,18 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             {mode === 'manual' && (
               <>
                 <label className="mb-4 block">
-                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                     Card number
                   </span>
                   <input
                     value={value}
                     placeholder="Type or paste the number"
-                    className="w-full rounded-xl bg-slate-100 px-4 py-3 font-mono text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full rounded-xl bg-muted px-4 py-3 font-mono text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
                     onChange={event => setValue(event.target.value)}
                   />
                 </label>
 
-                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Format
                 </span>
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -262,7 +264,9 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                       key={option}
                       onClick={() => setFormat(option)}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${
-                        format === option ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
+                        format === option
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
                       }`}
                     >
                       {formatLabels[option]}
@@ -275,18 +279,18 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             {(mode === 'manual' || scanResult !== null) && (
               <>
                 <label className="mb-4 block">
-                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                     Name
                   </span>
                   <input
                     value={name}
                     placeholder="e.g. Lidl Plus"
-                    className="w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary"
                     onChange={event => setName(event.target.value)}
                   />
                 </label>
 
-                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Color
                 </span>
                 <div className="mb-6 flex gap-2.5">
@@ -296,7 +300,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                       aria-label={option}
                       onClick={() => setTheme(option)}
                       className={`size-9 rounded-full ${cardThemeGradients[option]} ${
-                        option === theme ? 'ring-2 ring-slate-900 ring-offset-2' : ''
+                        option === theme ? 'ring-2 ring-foreground ring-offset-2 ring-offset-card' : ''
                       }`}
                     />
                   ))}
@@ -307,7 +311,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             <button
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/25 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
             >
               Add card
             </button>

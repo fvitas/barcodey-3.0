@@ -55,16 +55,16 @@ function EmptyState() {
         </div>
       </div>
 
-      <h2 className="mb-1.5 text-2xl font-extrabold tracking-tight text-slate-900">
+      <h2 className="mb-1.5 text-2xl font-extrabold tracking-tight text-foreground">
         All your cards in one place
       </h2>
-      <p className="mb-7 max-w-64 text-sm font-medium text-slate-500">
+      <p className="mb-7 max-w-64 text-sm font-medium text-muted-foreground">
         Scan it once — ready at every checkout, even offline.
       </p>
 
       <button
         onClick={openAddDrawer}
-        className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30"
+        className="flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30"
       >
         <CameraIcon className="size-4.5" />
         Scan your first card
@@ -113,18 +113,18 @@ export function WalletScreen() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-[26rem] bg-slate-100">
+    <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
       <header className="px-5 pt-8 pb-4">
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-            Barcodey<span className="text-blue-600">.</span>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+            Barcodey<span className="text-primary">.</span>
           </h1>
 
           <div className="flex gap-2">
             {import.meta.env.DEV && (
               <button
                 onClick={() => addCard(createSampleCard())}
-                className="flex size-10 items-center justify-center rounded-full bg-white text-amber-500 shadow-sm"
+                className="flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm"
                 aria-label="Add sample card"
               >
                 <FlaskConicalIcon className="size-5" />
@@ -133,7 +133,7 @@ export function WalletScreen() {
 
             <button
               onClick={() => update({ view: state.view === 'list' ? 'grid' : 'list' })}
-              className="flex size-10 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm"
+              className="flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
               aria-label="Toggle view"
             >
               {state.view === 'list' ? <LayoutGridIcon className="size-5" /> : <Rows3Icon className="size-5" />}
@@ -141,7 +141,7 @@ export function WalletScreen() {
 
             <button
               onClick={() => setSettingsOpen(true)}
-              className="flex size-10 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
+              className="flex size-10 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm"
               aria-label="Settings"
             >
               <SettingsIcon className="size-5" />
@@ -150,19 +150,19 @@ export function WalletScreen() {
         </div>
 
         <div className="relative">
-          <div className="flex items-center gap-2.5 rounded-full bg-white py-1.5 pr-1.5 pl-4 shadow-sm">
-            <SearchIcon className="size-4.5 shrink-0 text-slate-400" />
+          <div className="flex items-center gap-2.5 rounded-full bg-card py-1.5 pr-1.5 pl-4 shadow-sm">
+            <SearchIcon className="size-4.5 shrink-0 text-muted-foreground/70" />
             <input
               value={query}
               placeholder="Search cards"
-              className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-muted-foreground/70"
               onChange={handleQueryChange}
             />
 
             <button
               onClick={() => setSortOpen(current => !current)}
               aria-label="Sort"
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-slate-100 py-2 pr-3 pl-2.5 text-xs font-semibold text-slate-600"
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-muted py-2 pr-3 pl-2.5 text-xs font-semibold text-muted-foreground"
             >
               <currentSort.Icon className="size-4" />
               {currentSort.label}
@@ -178,7 +178,7 @@ export function WalletScreen() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 z-40 mt-2 w-44 rounded-2xl bg-white p-1.5 shadow-xl shadow-slate-900/15"
+                  className="absolute top-full right-0 z-40 mt-2 w-44 rounded-2xl bg-popover p-1.5 shadow-xl shadow-slate-900/15"
                 >
                   {sortModes.map(mode => (
                     <button
@@ -188,12 +188,12 @@ export function WalletScreen() {
                         setSortOpen(false)
                       }}
                       className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                        state.sort === mode.id ? 'bg-slate-100 text-slate-900' : 'text-slate-500'
+                        state.sort === mode.id ? 'bg-muted text-foreground' : 'text-muted-foreground'
                       }`}
                     >
                       <mode.Icon className="size-4" />
                       {mode.label}
-                      {state.sort === mode.id && <CheckIcon className="ml-auto size-4 text-blue-600" />}
+                      {state.sort === mode.id && <CheckIcon className="ml-auto size-4 text-primary" />}
                     </button>
                   ))}
                 </motion.div>
@@ -222,7 +222,7 @@ export function WalletScreen() {
         </div>
 
         {visibleCards.length === 0 && searching && (
-          <p className="mt-16 text-center text-sm font-medium text-slate-400">No cards match “{query}”</p>
+          <p className="mt-16 text-center text-sm font-medium text-muted-foreground">No cards match “{query}”</p>
         )}
 
         {cards.length === 0 && !searching && <EmptyState />}

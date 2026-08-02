@@ -41,7 +41,7 @@ export function WallPass({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ type: 'spring', stiffness: 400, damping: 34 }}
-      className={`relative rounded-2xl bg-white shadow-md shadow-slate-900/10 ${
+      className={`relative rounded-2xl bg-card shadow-md shadow-slate-900/10 ${
         view === 'grid' && active ? 'col-span-2' : ''
       }`}
     >
@@ -86,14 +86,14 @@ export function WallPass({
                   initial={{ scale: 0 }}
                   animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
                   exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
-                  className="absolute -bottom-3 -left-3 z-10 size-6 rounded-full bg-slate-100"
+                  className="absolute -bottom-3 -left-3 z-10 size-6 rounded-full bg-background"
                 />
                 <motion.span
                   key="notch-right"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
                   exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
-                  className="absolute -right-3 -bottom-3 z-10 size-6 rounded-full bg-slate-100"
+                  className="absolute -right-3 -bottom-3 z-10 size-6 rounded-full bg-background"
                 />
               </>
             )}
@@ -137,31 +137,32 @@ export function WallPass({
             transition={{ type: 'spring', stiffness: 400, damping: 34 }}
             className="overflow-hidden"
           >
-            <div className="mx-5 border-t-2 border-dashed border-slate-200" />
+            <div className="mx-5 border-t-2 border-dashed border-border" />
 
             <div className="flex flex-col gap-2.5 p-5 pb-4">
               {barcodeSvg !== null ? (
+                // always a white plate so barcodes stay scanner-readable in dark mode
                 <div
-                  className={
+                  className={`rounded-md bg-white px-3 py-2 ${
                     squareFormats.has(card.format)
                       ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
                       : '[&_svg]:h-auto [&_svg]:w-full'
-                  }
+                  }`}
                   dangerouslySetInnerHTML={{ __html: barcodeSvg }}
                 />
               ) : (
-                <p className="rounded-xl bg-red-50 px-4 py-3 text-center text-xs font-semibold text-red-600">
+                <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
                   “{card.value}” is not a valid {formatLabels[card.format]} number
                 </p>
               )}
-              <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-slate-400">
+              <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-muted-foreground/80">
                 {card.value}
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-slate-500">
+            <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
               <p className="flex items-center gap-2.5">
-                <CalendarIcon className="size-4 text-slate-400" />
+                <CalendarIcon className="size-4 text-muted-foreground/70" />
                 Added {formatAddedAt(card.addedAt)}
               </p>
             </div>
@@ -169,7 +170,7 @@ export function WallPass({
             <div className="grid grid-cols-3 gap-2 px-4 pb-4">
               <button
                 onClick={() => onToggleFavorite(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 py-2.5 text-sm font-semibold text-slate-700"
+                className="flex items-center justify-center gap-2 rounded-xl bg-muted py-2.5 text-sm font-semibold text-foreground/80"
               >
                 <StarIcon className={`size-4 ${card.favorite ? 'fill-amber-400 stroke-none' : ''}`} />
                 {card.favorite ? 'Unpin' : 'Favorite'}
@@ -177,7 +178,7 @@ export function WallPass({
 
               <button
                 onClick={() => onEdit(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 py-2.5 text-sm font-semibold text-slate-700"
+                className="flex items-center justify-center gap-2 rounded-xl bg-muted py-2.5 text-sm font-semibold text-foreground/80"
               >
                 <PencilIcon className="size-4" />
                 Edit
@@ -185,7 +186,7 @@ export function WallPass({
 
               <button
                 onClick={() => onDelete(card.id)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-white"
               >
                 <Trash2Icon className="size-4" />
                 Remove
