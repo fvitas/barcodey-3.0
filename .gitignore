@@ -6,6 +6,6 @@ dist
 .DS_Store
 *.local
 
-# private planning material — never commit
-DOCS.md
+# private planning material & instructions — never commit
+*.md
 docs/
