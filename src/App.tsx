@@ -1,57 +1,73 @@
-import { useState } from 'react'
-import { EmptyLab } from '@/mockups/EmptyLab'
-import { FoldersChips } from '@/mockups/FoldersChips'
-import { FoldersHeader } from '@/mockups/FoldersHeader'
-import { FoldersTabs } from '@/mockups/FoldersTabs'
-import { TicketWall } from '@/mockups/TicketWall'
-import { WarmWallet } from '@/mockups/WarmWallet'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
+import { AddDrawer } from '@/components/AddDrawer'
+import { AppNav } from '@/components/AppNav'
+import type { Card } from '@/lib/model'
+import { FolderScreen } from '@/screens/FolderScreen'
+import { FoldersScreen } from '@/screens/FoldersScreen'
+import { WalletScreen } from '@/screens/WalletScreen'
+import { AddDrawerContext } from '@/state/add-drawer-context'
+import { UiStateProvider, useUiState } from '@/state/ui-state-context'
+import { WalletProvider, useWallet } from '@/state/wallet-context'
 
-function EmptyTicketWall() {
-  return <TicketWall initialCards={[]} />
-}
+function AppShell() {
+  const wallet = useWallet()
+  const { ready, state, update } = useUiState()
+  const [addOpen, setAddOpen] = useState(false)
+  const [restored, setRestored] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-const mockupVariants = [
-  { id: '1', name: 'Warm Wallet', Component: WarmWallet },
-  { id: '2', name: 'Ticket Wall', Component: TicketWall },
-  { id: '3', name: 'Empty State', Component: EmptyTicketWall },
-  { id: '4', name: 'Empty Lab', Component: EmptyLab },
-  { id: '5', name: 'Folders · Header', Component: FoldersHeader },
-  { id: '6', name: 'Folders · Tabs', Component: FoldersTabs },
-  { id: '7', name: 'Folders · Chips', Component: FoldersChips },
-]
+  // continuity: reopen where the app was left, once, from the default entry only
+  useEffect(() => {
+    if (!ready || restored) return
+    if (location.pathname === '/' && state.path !== '/') {
+      navigate(state.path, { replace: true })
+    }
+    setRestored(true)
+  }, [ready, restored, state.path, location.pathname, navigate])
 
-function initialVariantId() {
-  const fromHash = window.location.hash.replace('#', '')
-  return mockupVariants.some(variant => variant.id === fromHash) ? fromHash : '1'
-}
+  useEffect(() => {
+    if (!restored) return
+    if (state.path !== location.pathname) {
+      update({ path: location.pathname })
+    }
+  }, [restored, state.path, location.pathname, update])
 
-export function App() {
-  const [variantId, setVariantId] = useState(initialVariantId)
+  if (!wallet.ready || !ready) {
+    return <div className="min-h-dvh" />
+  }
 
-  const active = mockupVariants.find(variant => variant.id === variantId) ?? mockupVariants[0]
-
-  function selectVariant(id: string) {
-    setVariantId(id)
-    window.history.replaceState(null, '', `#${id}`)
+  function handleAdd(card: Card) {
+    wallet.addCard(card)
+    update({ expandedCardId: card.id })
+    setAddOpen(false)
+    navigate('/')
   }
 
   return (
-    <>
-      <div className="fixed top-2 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-1 rounded-full bg-stone-900/85 px-2 py-1.5 text-white shadow-lg backdrop-blur">
-        {mockupVariants.map(variant => (
-          <button
-            key={variant.id}
-            onClick={() => selectVariant(variant.id)}
-            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-              variant.id === variantId ? 'bg-white text-stone-900' : 'text-white/60'
-            }`}
-          >
-            {variant.id}
-          </button>
-        ))}
-      </div>
+    <AddDrawerContext.Provider value={() => setAddOpen(true)}>
+      <Routes>
+        <Route path="/" element={<WalletScreen />} />
+        <Route path="/folders" element={<FoldersScreen />} />
+        <Route path="/folders/:folderId" element={<FolderScreen />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-      <active.Component key={active.id} />
-    </>
+      <AppNav onAdd={() => setAddOpen(true)} />
+      <AddDrawer open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAdd} />
+    </AddDrawerContext.Provider>
+  )
+}
+
+export function App() {
+  return (
+    <WalletProvider>
+      <UiStateProvider>
+        <BrowserRouter>
+          <AppShell />
+        </BrowserRouter>
+      </UiStateProvider>
+    </WalletProvider>
   )
 }
