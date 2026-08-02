@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
     "@bwip-js/browser": "^4.11.2",
     "@capacitor-community/screen-brightness": "^8.0.0",
     "@capacitor-mlkit/barcode-scanning": "^8.1.0",

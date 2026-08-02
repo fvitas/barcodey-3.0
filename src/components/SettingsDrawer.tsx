@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react'
 import { Drawer } from 'vaul'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
+import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
 import { walletSchema, type Wallet } from '@/lib/model'
 import { pressable } from '@/lib/utils'
+import { useDocumentsLock } from '@/state/documents-lock-context'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -20,14 +23,26 @@ function countLabel(count: number, noun: string): string {
 }
 
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
-  const { cards, folders, replaceWallet } = useWallet()
+  const { cards, folders, documents, replaceWallet } = useWallet()
   const { state, update } = useUiState()
+  const { method } = useDocumentsLock()
   const importInputRef = useRef<HTMLInputElement>(null)
   const [pendingImport, setPendingImport] = useState<Wallet | null>(null)
   const [importError, setImportError] = useState(false)
 
+  const lockAvailable = method !== null && method !== 'none'
+
+  function handleLockToggle(checked: boolean) {
+    if (checked) {
+      update({ lockDocuments: true })
+      return
+    }
+    // switching the lock off has to pass the lock first, or it protects nothing
+    void authenticateForDocuments().then(ok => ok && update({ lockDocuments: false }))
+  }
+
   function handleExport() {
-    const wallet: Wallet = { version: 1, cards, folders }
+    const wallet: Wallet = { version: 1, cards, folders, documents }
     void exportBackup(wallet)
   }
 
@@ -112,6 +127,26 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             </Tabs>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Documents
+            </span>
+            <div className="mb-5 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
+              <div className="min-w-0 pr-3">
+                <p className="text-sm font-semibold text-foreground">Biometric lock</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
+                  {lockAvailable
+                    ? `${lockMethodLabels[method]} required to open Documents`
+                    : 'Set a passcode on this device to enable'}
+                </p>
+              </div>
+              <Switch
+                checked={lockAvailable && state.lockDocuments}
+                disabled={!lockAvailable}
+                onCheckedChange={handleLockToggle}
+                aria-label="Biometric lock"
+              />
+            </div>
+
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Backup
             </span>
             <div className="mb-6 grid grid-cols-2 gap-2">
@@ -156,9 +191,10 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               <Drawer.Title className="mb-2 text-lg font-extrabold text-foreground">Replace wallet?</Drawer.Title>
 
               <p className="mb-6 text-sm text-muted-foreground">
-                This backup contains {countLabel(pendingImport?.cards.length ?? 0, 'card')} and{' '}
-                {countLabel(pendingImport?.folders.length ?? 0, 'folder')}. Importing replaces everything currently in
-                your wallet.
+                This backup contains {countLabel(pendingImport?.cards.length ?? 0, 'card')},{' '}
+                {countLabel(pendingImport?.folders.length ?? 0, 'folder')} and{' '}
+                {countLabel(pendingImport?.documents.length ?? 0, 'document')}. Importing replaces everything currently
+                in your wallet.
               </p>
 
               <div className="grid grid-cols-2 gap-2">

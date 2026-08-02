@@ -60,10 +60,23 @@ const folderSchema = z.object({
   name: z.string(),
 })
 
+// documents (IDs, licences) are photos-first: photos carry the content, everything else is optional
+const docSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  photos: cardPhotosSchema.default({}),
+  cover: cardCoverSchema.optional(),
+  number: z.string().optional(),
+  expiry: z.string().optional(), // ISO date, e.g. licence "valid until"
+  barcode: z.object({ value: z.string(), format: z.enum(barcodeFormats) }).optional(),
+  addedAt: z.string(),
+})
+
 export const walletSchema = z.object({
   version: z.literal(1),
   cards: z.array(cardSchema),
   folders: z.array(folderSchema),
+  documents: z.array(docSchema).default([]), // default keeps pre-documents wallets and backups valid
 })
 
 export type BarcodeFormat = (typeof barcodeFormats)[number]
@@ -73,9 +86,11 @@ export type PhotoSide = keyof CardPhotos
 export type CardCover = z.infer<typeof cardCoverSchema>
 export type Card = z.infer<typeof cardSchema>
 export type Folder = z.infer<typeof folderSchema>
+// "Doc" avoids clashing with the DOM's global Document type
+export type Doc = z.infer<typeof docSchema>
 export type Wallet = z.infer<typeof walletSchema>
 
-export const emptyWallet: Wallet = { version: 1, cards: [], folders: [] }
+export const emptyWallet: Wallet = { version: 1, cards: [], folders: [], documents: [] }
 
 export const formatLabels: Record<BarcodeFormat, string> = {
   ean13: 'EAN-13',
@@ -126,4 +141,8 @@ export function sortCards(cards: Card[], mode: SortMode): Card[] {
 
 export function formatAddedAt(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
+export function formatExpiry(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }

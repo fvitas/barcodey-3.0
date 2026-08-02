@@ -43,7 +43,7 @@ function PassPhoto({ side, path, onOpen }: PassPhotoProps) {
   )
 }
 
-function PhotoViewer({ path, onClose }: { path: string; onClose: () => void }) {
+export function PhotoViewer({ path, onClose }: { path: string; onClose: () => void }) {
   const src = usePhotoSrc(path)
 
   return createPortal(

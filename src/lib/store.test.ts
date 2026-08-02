@@ -44,7 +44,7 @@ function makeWallet(name: string): Wallet {
     folderId: null,
     photos: {},
   }
-  return { version: 1, cards: [card], folders: [] }
+  return { version: 1, cards: [card], folders: [], documents: [] }
 }
 
 beforeEach(() => {

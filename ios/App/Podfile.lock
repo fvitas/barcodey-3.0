@@ -1,4 +1,6 @@
 PODS:
+  - AparajitaCapacitorBiometricAuth (10.0.0):
+    - Capacitor
   - Capacitor (8.5.0):
     - CapacitorCordova
   - CapacitorCommunityScreenBrightness (8.0.0):
@@ -63,6 +65,7 @@ PODS:
   - PromisesObjC (2.4.1)
 
 DEPENDENCIES:
+  - "AparajitaCapacitorBiometricAuth (from `../../node_modules/.pnpm/@aparajita+capacitor-biometric-auth@10.0.0/node_modules/@aparajita/capacitor-biometric-auth`)"
   - "Capacitor (from `../../node_modules/.pnpm/@capacitor+ios@8.5.0_@capacitor+core@8.5.0/node_modules/@capacitor/ios`)"
   - "CapacitorCommunityScreenBrightness (from `../../node_modules/.pnpm/@capacitor-community+screen-brightness@8.0.0_@capacitor+core@8.5.0/node_modules/@capacitor-community/screen-brightness`)"
   - "CapacitorCordova (from `../../node_modules/.pnpm/@capacitor+ios@8.5.0_@capacitor+core@8.5.0/node_modules/@capacitor/ios`)"
@@ -87,6 +90,8 @@ SPEC REPOS:
     - PromisesObjC
 
 EXTERNAL SOURCES:
+  AparajitaCapacitorBiometricAuth:
+    :path: "../../node_modules/.pnpm/@aparajita+capacitor-biometric-auth@10.0.0/node_modules/@aparajita/capacitor-biometric-auth"
   Capacitor:
     :path: "../../node_modules/.pnpm/@capacitor+ios@8.5.0_@capacitor+core@8.5.0/node_modules/@capacitor/ios"
   CapacitorCommunityScreenBrightness:
@@ -103,6 +108,7 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share"
 
 SPEC CHECKSUMS:
+  AparajitaCapacitorBiometricAuth: 1ae24ba90d7977dffb4bc9040f374a807a510c98
   Capacitor: 00b87168591cc006ea6f5c0de681ec5c39a2c8eb
   CapacitorCommunityScreenBrightness: e4075e1181f7e88259edb8b1e3b9a209e1144d45
   CapacitorCordova: 9d3acbb574048e7167d2af127a0af2123e619f2f
@@ -123,6 +129,6 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
 
-PODFILE CHECKSUM: 833d29e0f966d37b17d321a8c5eb423b5aa3861b
+PODFILE CHECKSUM: df9d4d0f8c9eb7e7efa57afc494380e8762bca7a
 
 COCOAPODS: 1.17.0

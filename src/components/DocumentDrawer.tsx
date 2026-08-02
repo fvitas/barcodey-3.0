@@ -1,0 +1,266 @@
+import { CameraIcon } from 'lucide-react'
+import { useState } from 'react'
+import { Drawer } from 'vaul'
+import { CameraScanner } from '@/components/CameraScanner'
+import { CoverAdjust } from '@/components/CoverAdjust'
+import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
+import { deleteCardPhotos } from '@/lib/photos'
+import { hasNativeScanner, scanWithNativeScanner } from '@/lib/scanner'
+import { pressable } from '@/lib/utils'
+
+type DocDraft = Pick<Doc, 'name' | 'photos' | 'cover' | 'number' | 'expiry' | 'barcode'>
+
+const emptyDraft: DocDraft = { name: '', photos: {} }
+
+type DocumentFieldsProps = {
+  value: DocDraft
+  onPatch: (patch: Partial<DocDraft>) => void
+}
+
+function DocumentFields({ value, onPatch }: DocumentFieldsProps) {
+  const [scanning, setScanning] = useState(false)
+  const photoSides = (['front', 'back'] as const).filter(side => value.photos[side] !== undefined)
+  // the pass face defaults to the first photo; an explicit cover picks side + framing
+  const faceSide = value.cover?.side ?? photoSides[0]
+  const faceCover = value.cover ?? (faceSide !== undefined ? { side: faceSide, scale: 1, x: 0, y: 0 } : undefined)
+  const faceSrc = usePhotoSrc(faceSide !== undefined ? value.photos[faceSide] : undefined)
+
+  function handlePhotosChange(photos: Doc['photos']) {
+    // removing the photo used as cover falls back to the automatic face
+    const coverGone = value.cover !== undefined && photos[value.cover.side] === undefined
+    onPatch(coverGone ? { photos, cover: undefined } : { photos })
+  }
+
+  function handleScan() {
+    if (hasNativeScanner) {
+      void scanWithNativeScanner()
+        .then(result => result !== null && onPatch({ barcode: result }))
+        .catch(() => {})
+      return
+    }
+    setScanning(true)
+  }
+
+  return (
+    <>
+      <label className="mb-4 block">
+        <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+          Name
+        </span>
+        <Input
+          value={value.name}
+          placeholder="e.g. Driving licence"
+          className="h-11 px-4 text-sm font-semibold"
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => onPatch({ name: event.target.value })}
+        />
+      </label>
+
+      <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+        Photos
+      </span>
+      <div className="mb-4">
+        <PhotoField photos={value.photos} onChange={handlePhotosChange} />
+      </div>
+
+      {photoSides.length > 0 && (
+        <>
+          <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+            Cover
+          </span>
+          <Tabs
+            value={faceSide}
+            onValueChange={selected => onPatch({ cover: { side: selected as PhotoSide, scale: 1, x: 0, y: 0 } })}
+            className="mb-4"
+          >
+            <TabsList className="h-11! w-full">
+              {(['front', 'back'] as const).map(option => (
+                <TabsTrigger
+                  key={option}
+                  value={option}
+                  disabled={value.photos[option] === undefined}
+                  className="font-semibold capitalize"
+                >
+                  {option}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          {faceCover !== undefined && faceSrc !== null && (
+            <div className="mb-4">
+              <CoverAdjust src={faceSrc} cover={faceCover} onChange={cover => onPatch({ cover })} />
+            </div>
+          )}
+        </>
+      )}
+
+      <label className="mb-4 block">
+        <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+          Number <span className="normal-case">(optional)</span>
+        </span>
+        <Input
+          value={value.number ?? ''}
+          placeholder="e.g. AB 123456"
+          className="h-11 px-4 font-mono text-sm font-medium"
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onPatch({ number: event.target.value === '' ? undefined : event.target.value })
+          }
+        />
+      </label>
+
+      <label className="mb-4 block">
+        <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+          Expiry date <span className="normal-case">(optional)</span>
+        </span>
+        <Input
+          type="date"
+          value={value.expiry ?? ''}
+          className="h-11 px-4 text-sm font-semibold"
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onPatch({ expiry: event.target.value === '' ? undefined : event.target.value })
+          }
+        />
+      </label>
+
+      <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+        Barcode <span className="normal-case">(optional)</span>
+      </span>
+      {value.barcode !== undefined ? (
+        <div className="mb-6 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              {formatLabels[value.barcode.format]}
+            </p>
+            <p className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-muted-foreground">
+              {value.barcode.value}
+            </p>
+          </div>
+          <button
+            onClick={() => onPatch({ barcode: undefined })}
+            className={`${pressable} shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-destructive`}
+          >
+            Remove
+          </button>
+        </div>
+      ) : scanning ? (
+        <div className="mb-6">
+          <CameraScanner
+            onDetected={result => {
+              onPatch({ barcode: result })
+              setScanning(false)
+            }}
+          />
+          <button
+            onClick={() => setScanning(false)}
+            className={`${pressable} w-full rounded-4xl py-2 text-xs font-semibold text-muted-foreground hover:text-foreground`}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleScan}
+          className={`${pressable} mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! py-3 text-sm font-semibold text-muted-foreground hover:text-foreground`}
+        >
+          <CameraIcon className="size-4.5" />
+          Scan barcode
+        </button>
+      )}
+    </>
+  )
+}
+
+type AddDocumentDrawerProps = {
+  open: boolean
+  onClose: () => void
+  onAdd: (doc: Doc) => void
+}
+
+export function AddDocumentDrawer({ open, onClose, onAdd }: AddDocumentDrawerProps) {
+  const [draft, setDraft] = useState<DocDraft>(emptyDraft)
+
+  function handlePatch(patch: Partial<DocDraft>) {
+    setDraft(current => ({ ...current, ...patch }))
+  }
+
+  function handleClose() {
+    // dismissed without saving — the picked photos would leak as orphan files
+    void deleteCardPhotos(draft.photos)
+    setDraft(emptyDraft)
+    onClose()
+  }
+
+  function handleSubmit() {
+    if (draft.name.trim() === '') return
+    onAdd({
+      id: crypto.randomUUID(),
+      ...draft,
+      name: draft.name.trim(),
+      addedAt: new Date().toISOString().slice(0, 10),
+    })
+    setDraft(emptyDraft)
+    onClose()
+  }
+
+  return (
+    <Drawer.Root open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
+          <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-5 pt-3 pb-8">
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+            <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Add document</Drawer.Title>
+
+            <DocumentFields value={draft} onPatch={handlePatch} />
+
+            <button
+              onClick={handleSubmit}
+              disabled={draft.name.trim() === ''}
+              className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
+            >
+              Add document
+            </button>
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  )
+}
+
+type EditDocumentDrawerProps = {
+  doc: Doc | null
+  onClose: () => void
+  onChange: (id: string, patch: Partial<Omit<Doc, 'id'>>) => void
+}
+
+export function EditDocumentDrawer({ doc, onClose, onChange }: EditDocumentDrawerProps) {
+  return (
+    <Drawer.Root open={doc !== null} onOpenChange={open => !open && onClose()}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
+          {doc && (
+            <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-5 pt-3 pb-8">
+              <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+              <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Edit document</Drawer.Title>
+
+              <DocumentFields value={doc} onPatch={patch => onChange(doc.id, patch)} />
+
+              <button
+                onClick={onClose}
+                className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  )
+}

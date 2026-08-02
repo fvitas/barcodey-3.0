@@ -62,5 +62,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Barcodey uses the camera to scan your loyalty card barcodes.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Barcodey uses Face ID to unlock your documents.</string>
 </dict>
 </plist>

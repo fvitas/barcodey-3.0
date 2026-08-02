@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { emptyWallet, type Card, type Folder, type Wallet } from '@/lib/model'
+import { emptyWallet, type Card, type Doc, type Folder, type Wallet } from '@/lib/model'
 import { deleteCardPhotos } from '@/lib/photos'
 import { cardStore } from '@/lib/store'
 
@@ -7,6 +7,7 @@ type WalletContextValue = {
   ready: boolean
   cards: Card[]
   folders: Folder[]
+  documents: Doc[]
   addCard: (card: Card) => void
   updateCard: (id: string, patch: Partial<Omit<Card, 'id'>>) => void
   removeCard: (id: string) => void
@@ -15,6 +16,9 @@ type WalletContextValue = {
   renameFolder: (id: string, name: string) => void
   removeFolder: (id: string) => void
   setCardFolder: (cardId: string, folderId: string | null) => void
+  addDocument: (doc: Doc) => void
+  updateDocument: (id: string, patch: Partial<Omit<Doc, 'id'>>) => void
+  removeDocument: (id: string) => void
   replaceWallet: (wallet: Wallet) => void
 }
 
@@ -98,6 +102,23 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  function addDocument(doc: Doc) {
+    setWallet(current => ({ ...current, documents: [doc, ...current.documents] }))
+  }
+
+  function updateDocument(id: string, patch: Partial<Omit<Doc, 'id'>>) {
+    setWallet(current => ({
+      ...current,
+      documents: current.documents.map(doc => (doc.id === id ? { ...doc, ...patch } : doc)),
+    }))
+  }
+
+  function removeDocument(id: string) {
+    const doc = wallet.documents.find(doc => doc.id === id)
+    if (doc !== undefined) void deleteCardPhotos(doc.photos)
+    setWallet(current => ({ ...current, documents: current.documents.filter(doc => doc.id !== id) }))
+  }
+
   function replaceWallet(next: Wallet) {
     setWallet(next)
   }
@@ -108,6 +129,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         ready,
         cards: wallet.cards,
         folders: wallet.folders,
+        documents: wallet.documents,
         addCard,
         updateCard,
         removeCard,
@@ -116,6 +138,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         renameFolder,
         removeFolder,
         setCardFolder,
+        addDocument,
+        updateDocument,
+        removeDocument,
         replaceWallet,
       }}
     >

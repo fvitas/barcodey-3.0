@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyWallet, sortCards, walletSchema, type Card, type Wallet } from '@/lib/model'
+import { emptyWallet, sortCards, walletSchema, type Card, type Doc, type Wallet } from '@/lib/model'
 
 function makeCard(patch: Partial<Card> = {}): Card {
   return {
@@ -12,6 +12,16 @@ function makeCard(patch: Partial<Card> = {}): Card {
     addedAt: '2026-01-15',
     folderId: null,
     photos: {},
+    ...patch,
+  }
+}
+
+function makeDoc(patch: Partial<Doc> = {}): Doc {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Driving licence',
+    photos: {},
+    addedAt: '2026-01-15',
     ...patch,
   }
 }
@@ -80,6 +90,7 @@ describe('walletSchema (backup format)', () => {
         makeCard({ name: 'Starbucks', format: 'qrcode', favorite: true, folderId: 'f1' }),
       ],
       folders: [{ id: 'f1', name: 'Coffee' }],
+      documents: [],
     }
     const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
     expect(parsed).toEqual(wallet)
@@ -98,9 +109,39 @@ describe('walletSchema (backup format)', () => {
 
   it('keeps photo paths through a round-trip', () => {
     const card = makeCard({ photos: { front: 'photos/a.jpeg', back: 'photos/b.jpeg' } })
-    const wallet: Wallet = { version: 1, cards: [card], folders: [] }
+    const wallet: Wallet = { version: 1, cards: [card], folders: [], documents: [] }
     const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
     expect(parsed.cards[0].photos).toEqual({ front: 'photos/a.jpeg', back: 'photos/b.jpeg' })
+  })
+
+  it('defaults documents to empty on pre-documents backups', () => {
+    const wallet = { version: 1, cards: [makeCard()], folders: [] }
+    const parsed = walletSchema.parse(wallet)
+    expect(parsed.documents).toEqual([])
+  })
+
+  it('round-trips a full document', () => {
+    const doc = makeDoc({
+      photos: { front: 'photos/a.jpeg', back: 'photos/b.jpeg' },
+      cover: { side: 'front', scale: 1.5, x: 0.1, y: -0.05 },
+      number: 'AB 123456',
+      expiry: '2027-03-12',
+      barcode: { value: 'ANSI 636000', format: 'pdf417' },
+    })
+    const wallet: Wallet = { version: 1, cards: [], folders: [], documents: [doc] }
+    const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
+    expect(parsed).toEqual(wallet)
+  })
+
+  it('accepts a bare document with only name and photos', () => {
+    const wallet: Wallet = { version: 1, cards: [], folders: [], documents: [makeDoc()] }
+    expect(walletSchema.safeParse(wallet).success).toBe(true)
+  })
+
+  it('rejects a document barcode with an unknown format', () => {
+    const doc = { ...makeDoc(), barcode: { value: '1', format: 'code666' } }
+    const wallet = { version: 1, cards: [], folders: [], documents: [doc] }
+    expect(walletSchema.safeParse(wallet).success).toBe(false)
   })
 
   it('rejects an unknown version', () => {

@@ -3,10 +3,12 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from
 import { AddDrawer } from '@/components/AddDrawer'
 import { AppNav } from '@/components/AppNav'
 import type { Card } from '@/lib/model'
+import { DocumentsScreen } from '@/screens/DocumentsScreen'
 import { FolderScreen } from '@/screens/FolderScreen'
 import { FoldersScreen } from '@/screens/FoldersScreen'
 import { WalletScreen } from '@/screens/WalletScreen'
 import { AddDrawerContext } from '@/state/add-drawer-context'
+import { DocumentsLockProvider } from '@/state/documents-lock-context'
 import { UiStateProvider, useUiState } from '@/state/ui-state-context'
 import { WalletProvider, useWallet } from '@/state/wallet-context'
 
@@ -50,6 +52,7 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<WalletScreen />} />
         <Route path="/folders" element={<FoldersScreen />} />
+        <Route path="/folders/documents" element={<DocumentsScreen />} />
         <Route path="/folders/:folderId" element={<FolderScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -64,9 +67,11 @@ export function App() {
   return (
     <WalletProvider>
       <UiStateProvider>
-        <BrowserRouter>
-          <AppShell />
-        </BrowserRouter>
+        <DocumentsLockProvider>
+          <BrowserRouter>
+            <AppShell />
+          </BrowserRouter>
+        </DocumentsLockProvider>
       </UiStateProvider>
     </WalletProvider>
   )

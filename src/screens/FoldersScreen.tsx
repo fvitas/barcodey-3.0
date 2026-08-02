@@ -1,4 +1,4 @@
-import { FolderIcon, FolderPlusIcon, PlusIcon } from 'lucide-react'
+import { FolderIcon, FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
@@ -84,7 +84,7 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
 }
 
 export function FoldersScreen() {
-  const { cards, folders, createFolder } = useWallet()
+  const { cards, folders, documents, createFolder } = useWallet()
   const navigate = useNavigate()
   const [newFolderOpen, setNewFolderOpen] = useState(false)
 
@@ -125,6 +125,24 @@ export function FoldersScreen() {
             </button>
           )
         })}
+
+        <button
+          onClick={() => navigate('/folders/documents')}
+          className={`${pressable} rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 p-4 text-left shadow-sm ring-1 ring-white/10`}
+        >
+          <div className="mb-3 flex h-16 items-center justify-center">
+            <span className="flex size-12 items-center justify-center rounded-xl bg-white/10 text-white/80">
+              <IdCardIcon className="size-6" />
+            </span>
+          </div>
+          <p className="flex items-center gap-1.5 truncate font-extrabold text-white">
+            Documents
+            <LockIcon className="size-3.5 shrink-0 text-white/60" />
+          </p>
+          <p className="text-xs font-medium text-white/50">
+            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
+          </p>
+        </button>
 
         <button
           onClick={() => setNewFolderOpen(true)}
