@@ -1,7 +1,8 @@
 import { CameraIcon, SwitchCameraIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Drawer } from 'vaul'
-import { PhotoField } from '@/components/PhotoField'
+import { CoverAdjust } from '@/components/CoverAdjust'
+import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { pressable } from '@/lib/utils'
@@ -12,8 +13,10 @@ import {
   formatLabels,
   type BarcodeFormat,
   type Card,
+  type CardCover,
   type CardPhotos,
   type CardTheme,
+  type PhotoSide,
 } from '@/lib/model'
 import { deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanImage, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
@@ -143,6 +146,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [format, setFormat] = useState<BarcodeFormat>('code128')
   const [theme, setTheme] = useState<CardTheme>('ocean')
   const [photos, setPhotos] = useState<CardPhotos>({})
+  const [cover, setCover] = useState<CardCover | undefined>(undefined)
+  const coverSrc = usePhotoSrc(cover !== undefined ? photos[cover.side] : undefined)
 
   const canSubmit = name.trim() !== '' && (mode === 'scan' ? scanResult !== null : value.trim() !== '')
 
@@ -154,6 +159,13 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setFormat('code128')
     setTheme('ocean')
     setPhotos({})
+    setCover(undefined)
+  }
+
+  function handlePhotosChange(next: CardPhotos) {
+    // removing the photo used as cover falls back to the gradient face
+    if (cover !== undefined && next[cover.side] === undefined) setCover(undefined)
+    setPhotos(next)
   }
 
   function handleClose() {
@@ -181,6 +193,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       addedAt: new Date().toISOString().slice(0, 10),
       folderId: null,
       photos,
+      cover,
     })
     reset()
     onClose()
@@ -316,9 +329,47 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Photos <span className="normal-case">(optional)</span>
                 </span>
-                <div className="mb-6">
-                  <PhotoField photos={photos} onChange={setPhotos} />
+                <div className="mb-4">
+                  <PhotoField photos={photos} onChange={handlePhotosChange} />
                 </div>
+
+                {(photos.front !== undefined || photos.back !== undefined) && (
+                  <>
+                    <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                      Cover
+                    </span>
+                    <Tabs
+                      value={cover?.side ?? 'none'}
+                      onValueChange={selected =>
+                        setCover(
+                          selected === 'none'
+                            ? undefined
+                            : { side: selected as PhotoSide, scale: 1, x: 0, y: 0 },
+                        )
+                      }
+                      className={cover !== undefined ? 'mb-4' : 'mb-6'}
+                    >
+                      <TabsList className="h-11! w-full">
+                        {(['none', 'front', 'back'] as const).map(option => (
+                          <TabsTrigger
+                            key={option}
+                            value={option}
+                            disabled={option !== 'none' && photos[option] === undefined}
+                            className="font-semibold capitalize"
+                          >
+                            {option === 'none' ? 'Color' : option}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+
+                    {cover !== undefined && coverSrc !== null && (
+                      <div className="mb-6">
+                        <CoverAdjust src={coverSrc} cover={cover} onChange={setCover} />
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
 
