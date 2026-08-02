@@ -1,5 +1,7 @@
 import { Drawer } from 'vaul'
-import { cardThemeGradients, cardThemes, formatLabels, type Card } from '@/lib/model'
+import { CoverAdjust } from '@/components/CoverAdjust'
+import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
+import { cardThemeGradients, cardThemes, formatLabels, type Card, type PhotoSide } from '@/lib/model'
 
 type EditDrawerProps = {
   card: Card | null
@@ -7,7 +9,10 @@ type EditDrawerProps = {
   onChange: (id: string, patch: Partial<Omit<Card, 'id'>>) => void
 }
 
+const coverOptions = ['none', 'front', 'back'] as const
+
 export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
+  const coverSrc = usePhotoSrc(card?.cover !== undefined ? card.photos[card.cover.side] : undefined)
   return (
     <Drawer.Root open={card !== null} onOpenChange={open => !open && onClose()}>
       <Drawer.Portal>
@@ -33,7 +38,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
               <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                 Color
               </span>
-              <div className="mb-6 flex gap-2.5">
+              <div className="mb-5 flex gap-2.5">
                 {cardThemes.map(theme => (
                   <button
                     key={theme}
@@ -45,6 +50,60 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                   />
                 ))}
               </div>
+
+              <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                Photos
+              </span>
+              <div className="mb-5">
+                <PhotoField
+                  photos={card.photos}
+                  onChange={photos => {
+                    // removing the photo used as cover falls back to the gradient face
+                    const coverGone = card.cover !== undefined && photos[card.cover.side] === undefined
+                    onChange(card.id, coverGone ? { photos, cover: undefined } : { photos })
+                  }}
+                />
+              </div>
+
+              {(card.photos.front !== undefined || card.photos.back !== undefined) && (
+                <>
+                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                    Cover
+                  </span>
+                  <div className={`grid grid-cols-3 gap-1 rounded-xl bg-muted p-1 ${card.cover ? 'mb-4' : 'mb-5'}`}>
+                    {coverOptions.map(option => {
+                      const selected = option === 'none' ? card.cover === undefined : card.cover?.side === option
+                      const disabled = option !== 'none' && card.photos[option as PhotoSide] === undefined
+                      return (
+                        <button
+                          key={option}
+                          disabled={disabled}
+                          onClick={() =>
+                            onChange(card.id, {
+                              cover: option === 'none' ? undefined : { side: option, scale: 1, x: 0, y: 0 },
+                            })
+                          }
+                          className={`rounded-lg py-2 text-sm font-semibold capitalize disabled:opacity-40 ${
+                            selected ? 'bg-secondary text-secondary-foreground shadow-sm' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {option === 'none' ? 'Color' : option}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {card.cover !== undefined && coverSrc !== null && (
+                    <div className="mb-5">
+                      <CoverAdjust
+                        src={coverSrc}
+                        cover={card.cover}
+                        onChange={cover => onChange(card.id, { cover })}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
 
               <div className="mb-6 rounded-xl bg-muted/60 px-4 py-3">
                 <p className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">

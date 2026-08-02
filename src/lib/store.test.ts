@@ -42,6 +42,7 @@ function makeWallet(name: string): Wallet {
     favorite: false,
     addedAt: '2026-01-15',
     folderId: null,
+    photos: {},
   }
   return { version: 1, cards: [card], folders: [] }
 }

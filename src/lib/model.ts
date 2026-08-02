@@ -27,6 +27,21 @@ export const cardThemes = [
   'graphite',
 ] as const
 
+// Filesystem paths relative to Directory.Data — wallet.json never embeds image data
+const cardPhotosSchema = z.object({
+  front: z.string().optional(),
+  back: z.string().optional(),
+})
+
+// scale ≥ 1 on top of cover-fit; x/y are offsets as fractions of the card frame size,
+// so the same values render identically in every frame that keeps the card aspect
+const cardCoverSchema = z.object({
+  side: z.enum(['front', 'back']),
+  scale: z.number().min(1).max(4),
+  x: z.number(),
+  y: z.number(),
+})
+
 const cardSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -36,6 +51,8 @@ const cardSchema = z.object({
   favorite: z.boolean(),
   addedAt: z.string(), // ISO date, sortable lexicographically
   folderId: z.string().nullable(),
+  photos: cardPhotosSchema.default({}), // default keeps pre-photos wallets and backups valid
+  cover: cardCoverSchema.optional(), // photo shown as the full card face in list/grid
 })
 
 const folderSchema = z.object({
@@ -51,6 +68,9 @@ export const walletSchema = z.object({
 
 export type BarcodeFormat = (typeof barcodeFormats)[number]
 export type CardTheme = (typeof cardThemes)[number]
+export type CardPhotos = z.infer<typeof cardPhotosSchema>
+export type PhotoSide = keyof CardPhotos
+export type CardCover = z.infer<typeof cardCoverSchema>
 export type Card = z.infer<typeof cardSchema>
 export type Folder = z.infer<typeof folderSchema>
 export type Wallet = z.infer<typeof walletSchema>

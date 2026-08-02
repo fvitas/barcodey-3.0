@@ -27,5 +27,6 @@ export function createSampleCard(): Card {
     favorite: false,
     addedAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10),
     folderId: null,
+    photos: {},
   }
 }

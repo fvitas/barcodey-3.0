@@ -11,6 +11,7 @@ function makeCard(patch: Partial<Card> = {}): Card {
     favorite: false,
     addedAt: '2026-01-15',
     folderId: null,
+    photos: {},
     ...patch,
   }
 }
@@ -86,6 +87,20 @@ describe('walletSchema (backup format)', () => {
 
   it('accepts an empty wallet', () => {
     expect(walletSchema.safeParse(emptyWallet).success).toBe(true)
+  })
+
+  it('defaults photos to empty on pre-photos backups', () => {
+    const { photos: _photos, ...legacyCard } = makeCard()
+    const wallet = { version: 1, cards: [legacyCard], folders: [] }
+    const parsed = walletSchema.parse(wallet)
+    expect(parsed.cards[0].photos).toEqual({})
+  })
+
+  it('keeps photo paths through a round-trip', () => {
+    const card = makeCard({ photos: { front: 'photos/a.jpeg', back: 'photos/b.jpeg' } })
+    const wallet: Wallet = { version: 1, cards: [card], folders: [] }
+    const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
+    expect(parsed.cards[0].photos).toEqual({ front: 'photos/a.jpeg', back: 'photos/b.jpeg' })
   })
 
   it('rejects an unknown version', () => {

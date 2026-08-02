@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { emptyWallet, type Card, type Folder, type Wallet } from '@/lib/model'
+import { deleteCardPhotos } from '@/lib/photos'
 import { cardStore } from '@/lib/store'
 
 type WalletContextValue = {
@@ -50,6 +51,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }
 
   function removeCard(id: string) {
+    const card = wallet.cards.find(card => card.id === id)
+    if (card !== undefined) void deleteCardPhotos(card.photos)
     setWallet(current => ({ ...current, cards: current.cards.filter(card => card.id !== id) }))
   }
 

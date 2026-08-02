@@ -1,6 +1,7 @@
 import { CameraIcon, SwitchCameraIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Drawer } from 'vaul'
+import { PhotoField } from '@/components/PhotoField'
 import {
   barcodeFormats,
   cardThemeGradients,
@@ -8,8 +9,10 @@ import {
   formatLabels,
   type BarcodeFormat,
   type Card,
+  type CardPhotos,
   type CardTheme,
 } from '@/lib/model'
+import { deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanImage, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
 
 type CameraFacing = 'environment' | 'user'
@@ -136,6 +139,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [value, setValue] = useState('')
   const [format, setFormat] = useState<BarcodeFormat>('code128')
   const [theme, setTheme] = useState<CardTheme>('ocean')
+  const [photos, setPhotos] = useState<CardPhotos>({})
 
   const canSubmit = name.trim() !== '' && (mode === 'scan' ? scanResult !== null : value.trim() !== '')
 
@@ -146,9 +150,12 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setValue('')
     setFormat('code128')
     setTheme('ocean')
+    setPhotos({})
   }
 
   function handleClose() {
+    // dismissed without saving — the picked photos would leak as orphan files
+    void deleteCardPhotos(photos)
     reset()
     onClose()
   }
@@ -170,8 +177,10 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       favorite: false,
       addedAt: new Date().toISOString().slice(0, 10),
       folderId: null,
+      photos,
     })
-    handleClose()
+    reset()
+    onClose()
   }
 
   return (
@@ -293,7 +302,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Color
                 </span>
-                <div className="mb-6 flex gap-2.5">
+                <div className="mb-4 flex gap-2.5">
                   {cardThemes.map(option => (
                     <button
                       key={option}
@@ -304,6 +313,13 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                       }`}
                     />
                   ))}
+                </div>
+
+                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                  Photos <span className="normal-case">(optional)</span>
+                </span>
+                <div className="mb-6">
+                  <PhotoField photos={photos} onChange={setPhotos} />
                 </div>
               </>
             )}

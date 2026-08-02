@@ -1,5 +1,9 @@
 import { CalendarIcon, ChevronDownIcon, PencilIcon, StarIcon, Trash2Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { CoverImage } from '@/components/CoverAdjust'
+import { usePhotoSrc } from '@/components/PhotoField'
 import { renderBarcodeSvg } from '@/lib/barcode'
 import {
   cardThemeGradients,
@@ -7,8 +11,54 @@ import {
   formatLabels,
   squareFormats,
   type Card,
+  type PhotoSide,
   type ViewMode,
 } from '@/lib/model'
+
+type PassPhotoProps = {
+  side: PhotoSide
+  path: string
+  onOpen: (path: string) => void
+}
+
+function PassPhoto({ side, path, onOpen }: PassPhotoProps) {
+  const src = usePhotoSrc(path)
+
+  return (
+    <button
+      onClick={() => onOpen(path)}
+      aria-label={`View ${side} photo`}
+      className="relative aspect-[1.6] w-[calc(50%-0.25rem)] overflow-hidden rounded-lg"
+    >
+      {src !== null ? (
+        <img src={src} alt={`${side} photo`} className="size-full object-cover" />
+      ) : (
+        <div className="size-full bg-muted" />
+      )}
+      <span className="absolute bottom-1 left-1.5 text-[0.5625rem] font-bold tracking-widest text-white uppercase drop-shadow">
+        {side}
+      </span>
+    </button>
+  )
+}
+
+function PhotoViewer({ path, onClose }: { path: string; onClose: () => void }) {
+  const src = usePhotoSrc(path)
+
+  return createPortal(
+    <motion.button
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      aria-label="Close photo"
+      className="fixed inset-0 z-70 flex items-center justify-center bg-black/90 p-4"
+    >
+      {src !== null && <img src={src} alt="Card photo" className="max-h-full max-w-full rounded-xl" />}
+    </motion.button>,
+    document.body,
+  )
+}
 
 type WallPassProps = {
   card: Card
@@ -35,6 +85,10 @@ export function WallPass({
 }: WallPassProps) {
   const gridTile = view === 'grid' && !active
   const barcodeSvg = active ? renderBarcodeSvg(card.value, card.format) : null
+  const [viewerPath, setViewerPath] = useState<string | null>(null)
+  const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
+  const coverSrc = usePhotoSrc(card.cover !== undefined ? card.photos[card.cover.side] : undefined)
+  const photoFace = card.cover !== undefined && coverSrc !== null
 
   return (
     <motion.div
@@ -50,14 +104,25 @@ export function WallPass({
       {gridTile ? (
         <button
           onClick={() => onToggle(card.id)}
-          className={`relative flex aspect-[1.35] w-full flex-col justify-between rounded-2xl p-4 text-left ${cardThemeGradients[card.theme]}`}
+          className={`relative flex aspect-[1.586] w-full flex-col justify-between rounded-2xl p-4 text-left ${cardThemeGradients[card.theme]}`}
         >
-          <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.06)_38%,transparent_39%)]" />
+          {photoFace && card.cover !== undefined ? (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+              <CoverImage cover={card.cover} src={coverSrc} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            </div>
+          ) : (
+            <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.06)_38%,transparent_39%)]" />
+          )}
 
           <div className="relative flex items-start justify-between">
-            <span className="flex size-9 items-center justify-center rounded-full bg-white/25 text-sm font-bold text-white">
-              {card.name.charAt(0).toUpperCase()}
-            </span>
+            {photoFace ? (
+              <span />
+            ) : (
+              <span className="flex size-9 items-center justify-center rounded-full bg-white/25 text-sm font-bold text-white">
+                {card.name.charAt(0).toUpperCase()}
+              </span>
+            )}
             {card.favorite && <StarIcon className="size-4 fill-amber-300 stroke-none" />}
           </div>
 
@@ -70,13 +135,27 @@ export function WallPass({
         </button>
       ) : (
         <div
-          className={`relative flex w-full items-center gap-1 p-4 ${
+          onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+            // the photo area of a cover face toggles too; buttons inside handle themselves
+            if (!photoFace) return
+            if (event.target instanceof Element && event.target.closest('button') !== null) return
+            onToggle(card.id)
+          }}
+          className={`relative flex w-full gap-1 p-4 ${photoFace ? 'aspect-[1.586] items-end' : 'items-center'} ${
             active
               ? 'rounded-t-2xl'
               : 'rounded-2xl transition-[border-radius] delay-[180ms] duration-150 ease-out'
           } ${cardThemeGradients[card.theme]}`}
         >
-          <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.06)_38%,transparent_39%)]" />
+          {/* cover art is clipped by an inner wrapper so the punch notches outside it survive */}
+          {photoFace && card.cover !== undefined ? (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+              <CoverImage cover={card.cover} src={coverSrc} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+            </div>
+          ) : (
+            <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.06)_38%,transparent_39%)]" />
+          )}
 
           {/* punch holes sit on the divider and extend past the card edge so they cut the drop shadow too;
               on close they stay through the fold-up, then shrink as the corners round off */}
@@ -108,9 +187,11 @@ export function WallPass({
             className="relative flex min-w-0 flex-1 items-center justify-between text-left"
           >
             <div className="flex min-w-0 items-center gap-3.5">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/25 text-lg font-bold text-white">
-                {card.name.charAt(0).toUpperCase()}
-              </span>
+              {!photoFace && (
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/25 text-lg font-bold text-white">
+                  {card.name.charAt(0).toUpperCase()}
+                </span>
+              )}
 
               <div className="min-w-0">
                 <p className="truncate text-lg leading-tight font-extrabold text-white">{card.name}</p>
@@ -164,6 +245,27 @@ export function WallPass({
               </p>
             </div>
 
+            <AnimatePresence initial={false}>
+              {photoPaths.length > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex gap-2 px-5 pb-4">
+                    {photoPaths.map(side => {
+                      const path = card.photos[side]
+                      return (
+                        path !== undefined && <PassPhoto key={side} side={side} path={path} onOpen={setViewerPath} />
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
               <p className="flex items-center gap-2.5">
                 <CalendarIcon className="size-4 text-muted-foreground/70" />
@@ -198,6 +300,10 @@ export function WallPass({
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {viewerPath !== null && <PhotoViewer path={viewerPath} onClose={() => setViewerPath(null)} />}
       </AnimatePresence>
     </motion.div>
   )
