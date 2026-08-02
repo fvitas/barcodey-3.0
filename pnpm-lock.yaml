@@ -32,6 +32,9 @@ importers:
       '@capacitor/preferences':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
+      '@capacitor/share':
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.5.0)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -359,6 +362,11 @@ packages:
 
   '@capacitor/preferences@8.0.1':
     resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/share@8.0.1':
+    resolution: {integrity: sha512-3cSBKBCJVon54rKDROP2rqGyeGks4pBh9TbaEk9S375Kbek/ZHe72N50zIa0Vn9Eac/SuhwgehO/mmA4CsUOiw==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -3719,6 +3727,10 @@ snapshots:
       '@capacitor/core': 8.5.0
 
   '@capacitor/preferences@8.0.1(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
+
+  '@capacitor/share@8.0.1(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
 

@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { Drawer } from 'vaul'
+import { exportBackup } from '@/lib/backup'
 import { walletSchema, type Wallet } from '@/lib/model'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
@@ -19,13 +20,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
 
   function handleExport() {
     const wallet: Wallet = { version: 1, cards, folders }
-    const blob = new Blob([JSON.stringify(wallet, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `barcodey-backup-${new Date().toISOString().slice(0, 10)}.json`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    void exportBackup(wallet)
   }
 
   function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {

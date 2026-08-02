@@ -12,6 +12,8 @@ PODS:
     - GoogleMLKit/BarcodeScanning (~> 8.0.0)
   - CapacitorPreferences (8.0.1):
     - Capacitor
+  - CapacitorShare (8.0.1):
+    - Capacitor
   - GoogleDataTransport (10.1.1):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
@@ -67,6 +69,7 @@ DEPENDENCIES:
   - "CapacitorFilesystem (from `../../node_modules/.pnpm/@capacitor+filesystem@8.1.2_@capacitor+core@8.5.0/node_modules/@capacitor/filesystem`)"
   - "CapacitorMlkitBarcodeScanning (from `../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_@capacitor+core@8.5.0/node_modules/@capacitor-mlkit/barcode-scanning`)"
   - "CapacitorPreferences (from `../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences`)"
+  - "CapacitorShare (from `../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share`)"
 
 SPEC REPOS:
   trunk:
@@ -96,6 +99,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_@capacitor+core@8.5.0/node_modules/@capacitor-mlkit/barcode-scanning"
   CapacitorPreferences:
     :path: "../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences"
+  CapacitorShare:
+    :path: "../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share"
 
 SPEC CHECKSUMS:
   Capacitor: 00b87168591cc006ea6f5c0de681ec5c39a2c8eb
@@ -104,6 +109,7 @@ SPEC CHECKSUMS:
   CapacitorFilesystem: 2db285a1ac6e475cc27cae2e1bea999000f9e2be
   CapacitorMlkitBarcodeScanning: 31c6af9f39873ff69e16ed5b39ebe2e1915f16fe
   CapacitorPreferences: cca2021f386efb75947c850334447d9ff22b14f1
+  CapacitorShare: 0c58305114538568059bfc07111f22dcb9cb2a82
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleMLKit: ddd51d7dff36ff28defa69afedd9cdce684fd857
   GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
@@ -117,6 +123,6 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
 
-PODFILE CHECKSUM: 2ab66e11e0ab6108a08d8ac36f1743812774e070
+PODFILE CHECKSUM: 833d29e0f966d37b17d321a8c5eb423b5aa3861b
 
 COCOAPODS: 1.17.0
