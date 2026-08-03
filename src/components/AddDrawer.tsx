@@ -1,4 +1,5 @@
 import { CameraIcon } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
@@ -135,14 +136,29 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             )}
 
             {mode === 'scan' && scanResult !== null && (
-              <div className="mb-5 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.5, bounce: 0.35 }}
+                className="mb-5 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10"
+              >
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                  <motion.p
+                    initial={{ opacity: 0, transform: 'translateY(4px)' }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                    transition={{ delay: 0.08, duration: 0.25, ease: 'easeOut' }}
+                    className="text-xs font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400"
+                  >
                     Detected · {formatLabels[scanResult.format]}
-                  </p>
-                  <p className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-foreground/80">
+                  </motion.p>
+                  <motion.p
+                    initial={{ opacity: 0, transform: 'translateY(4px)' }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                    transition={{ delay: 0.14, duration: 0.25, ease: 'easeOut' }}
+                    className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-foreground/80"
+                  >
                     {scanResult.value}
-                  </p>
+                  </motion.p>
                 </div>
                 <button
                   onClick={() => setScanResult(null)}
@@ -150,7 +166,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 >
                   Rescan
                 </button>
-              </div>
+              </motion.div>
             )}
 
             {mode === 'manual' && (

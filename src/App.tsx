@@ -1,3 +1,4 @@
+import { MotionConfig } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { AddDrawer } from '@/components/AddDrawer'
@@ -65,14 +66,16 @@ function AppShell() {
 
 export function App() {
   return (
-    <WalletProvider>
-      <UiStateProvider>
-        <DocumentsLockProvider>
-          <BrowserRouter>
-            <AppShell />
-          </BrowserRouter>
-        </DocumentsLockProvider>
-      </UiStateProvider>
-    </WalletProvider>
+    <MotionConfig reducedMotion="user">
+      <WalletProvider>
+        <UiStateProvider>
+          <DocumentsLockProvider>
+            <BrowserRouter>
+              <AppShell />
+            </BrowserRouter>
+          </DocumentsLockProvider>
+        </UiStateProvider>
+      </WalletProvider>
+    </MotionConfig>
   )
 }
