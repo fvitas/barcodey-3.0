@@ -9,3 +9,4 @@ dist
 # private planning material & instructions — never commit
 *.md
 docs/
+mockups/
