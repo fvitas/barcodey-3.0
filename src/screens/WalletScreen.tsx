@@ -21,6 +21,7 @@ import {
   CameraIcon,
   CheckIcon,
   FlaskConicalIcon,
+  GalleryHorizontalEndIcon,
   GripVerticalIcon,
   LayoutGridIcon,
   Rows3Icon,
@@ -29,6 +30,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { DeckView } from '@/components/DeckView'
 import { EditDrawer } from '@/components/EditDrawer'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { WallPass } from '@/components/WallPass'
@@ -52,6 +54,12 @@ const sortModes: { id: SortMode; label: string; Icon: typeof GripVerticalIcon }[
   { id: 'za', label: 'Z to A', Icon: ArrowUpAZIcon },
   { id: 'newest', label: 'Newest', Icon: CalendarArrowDownIcon },
   { id: 'oldest', label: 'Oldest', Icon: CalendarArrowUpIcon },
+]
+
+const viewOptions: { id: ViewMode; label: string; Icon: typeof Rows3Icon }[] = [
+  { id: 'list', label: 'List', Icon: Rows3Icon },
+  { id: 'grid', label: 'Grid', Icon: LayoutGridIcon },
+  { id: 'deck', label: 'Deck', Icon: GalleryHorizontalEndIcon },
 ]
 
 type SortablePassProps = {
@@ -154,7 +162,8 @@ export function WalletScreen() {
 
   const editingCard = cards.find(card => card.id === editingId) ?? null
   const currentSort = sortModes.find(mode => mode.id === state.sort) ?? sortModes[0]
-  const draggable = state.sort === 'manual' && !searching
+  const currentView = viewOptions.find(option => option.id === state.view) ?? viewOptions[0]
+  const draggable = state.sort === 'manual' && !searching && state.view !== 'deck'
 
   // grid tiles drag as a whole, so a press-and-hold keeps taps working; the list grip needs no delay
   const listSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
@@ -185,6 +194,10 @@ export function WalletScreen() {
     }
   }
 
+  function handleDeckIndexChange(index: number) {
+    update({ deckIndex: index })
+  }
+
   function handleToggleFavorite(id: string) {
     const card = cards.find(current => current.id === id)
     if (card !== undefined) {
@@ -211,13 +224,30 @@ export function WalletScreen() {
               </button>
             )}
 
-            <button
-              onClick={() => update({ view: state.view === 'list' ? 'grid' : 'list' })}
-              className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
-              aria-label="Toggle view"
-            >
-              {state.view === 'list' ? <LayoutGridIcon className="size-5" /> : <Rows3Icon className="size-5" />}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Change view"
+                  className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
+                >
+                  <currentView.Icon className="size-5" />
+                </button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" sideOffset={8}>
+                {viewOptions.map(option => (
+                  <DropdownMenuItem
+                    key={option.id}
+                    onSelect={() => update({ view: option.id })}
+                    className="gap-2.5 font-semibold"
+                  >
+                    <option.Icon className="size-4" />
+                    {option.label}
+                    {state.view === option.id && <CheckIcon className="ml-auto size-4 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <button
               onClick={() => setSettingsOpen(true)}
@@ -267,34 +297,48 @@ export function WalletScreen() {
       </header>
 
       <main className="px-5 pb-32">
-        <DndContext
-          sensors={state.view === 'grid' ? gridSensors : listSensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={visibleCards.map(card => card.id)}
-            strategy={state.view === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+        {state.view === 'deck' ? (
+          <DeckView
+            cards={visibleCards}
+            expandedCardId={state.expandedCardId}
+            resetSignal={`${state.sort}|${query.trim().toLowerCase()}`}
+            initialIndex={state.deckIndex}
+            onIndexChange={handleDeckIndexChange}
+            onToggle={handleToggle}
+            onEdit={setEditingId}
+            onDelete={handleDelete}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        ) : (
+          <DndContext
+            sensors={state.view === 'grid' ? gridSensors : listSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            <div className={state.view === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
-              <AnimatePresence initial={false}>
-                {visibleCards.map(card => (
-                  <SortablePass
-                    key={card.id}
-                    card={card}
-                    active={card.id === state.expandedCardId}
-                    view={state.view}
-                    draggable={draggable}
-                    onToggle={handleToggle}
-                    onEdit={setEditingId}
-                    onDelete={handleDelete}
-                    onToggleFavorite={handleToggleFavorite}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </SortableContext>
-        </DndContext>
+            <SortableContext
+              items={visibleCards.map(card => card.id)}
+              strategy={state.view === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+            >
+              <div className={state.view === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
+                <AnimatePresence initial={false}>
+                  {visibleCards.map(card => (
+                    <SortablePass
+                      key={card.id}
+                      card={card}
+                      active={card.id === state.expandedCardId}
+                      view={state.view}
+                      draggable={draggable}
+                      onToggle={handleToggle}
+                      onEdit={setEditingId}
+                      onDelete={handleDelete}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
 
         {visibleCards.length === 0 && searching && (
           <p className="mt-16 text-center text-sm font-medium text-muted-foreground">No cards match “{query}”</p>

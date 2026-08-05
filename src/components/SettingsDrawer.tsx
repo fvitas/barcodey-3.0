@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
 import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
-import { walletSchema, type Wallet } from '@/lib/model'
+import { viewModes, walletSchema, type Wallet } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 import { useDocumentsLock } from '@/state/documents-lock-context'
 import { useUiState } from '@/state/ui-state-context'
@@ -16,7 +16,7 @@ type SettingsDrawerProps = {
 }
 
 const appearances = ['light', 'dark', 'system'] as const
-const views = ['list', 'grid'] as const
+const views = viewModes
 
 function countLabel(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`

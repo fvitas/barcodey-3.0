@@ -1,13 +1,15 @@
 import { Preferences } from '@capacitor/preferences'
 import { z } from 'zod'
+import { viewModes } from '@/lib/model'
 
 const uiStateSchema = z.object({
   path: z.string(),
-  view: z.enum(['list', 'grid']),
+  view: z.enum(viewModes),
   sort: z.enum(['manual', 'az', 'za', 'newest', 'oldest']),
   expandedCardId: z.string().nullable(),
   appearance: z.enum(['light', 'dark', 'system']),
   lockDocuments: z.boolean().default(true), // default keeps pre-lock persisted state valid, secure by default
+  deckIndex: z.number().int().nonnegative().default(0), // default keeps pre-deck persisted state valid
 })
 
 export type UiState = z.infer<typeof uiStateSchema>
@@ -19,6 +21,7 @@ export const defaultUiState: UiState = {
   expandedCardId: null,
   appearance: 'system',
   lockDocuments: true,
+  deckIndex: 0,
 }
 
 const uiStateKey = 'ui-state'

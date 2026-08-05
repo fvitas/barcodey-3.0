@@ -43,7 +43,8 @@ function AppShell() {
 
   function handleAdd(card: Card) {
     wallet.addCard(card)
-    update({ expandedCardId: card.id })
+    // deck fronts the new card folded — the face is the confirmation; wall auto-expands
+    update({ expandedCardId: state.view === 'deck' ? null : card.id })
     setAddOpen(false)
     navigate('/')
   }

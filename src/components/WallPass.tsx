@@ -61,6 +61,103 @@ export function PhotoViewer({ path, onClose }: { path: string; onClose: () => vo
   )
 }
 
+type PassDetailsProps = {
+  card: Card
+  onEdit: (id: string) => void
+  onDelete: (id: string) => void
+  onToggleFavorite: (id: string) => void
+}
+
+// the unfolded half of a pass — shared by the wall (list/grid) and the deck so the views never drift
+export function PassDetails({ card, onEdit, onDelete, onToggleFavorite }: PassDetailsProps) {
+  const barcodeSvg = renderBarcodeSvg(card.value, card.format)
+  const [viewerPath, setViewerPath] = useState<string | null>(null)
+  const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
+
+  return (
+    <>
+      <div className="mx-5 border-t-2 border-dashed border-border" />
+
+      <div className="flex flex-col gap-2.5 p-5 pb-4">
+        {barcodeSvg !== null ? (
+          // always a white plate so barcodes stay scanner-readable in dark mode
+          <div
+            className={`rounded-md bg-white px-3 py-2 ${
+              squareFormats.has(card.format)
+                ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
+                : '[&_svg]:h-auto [&_svg]:w-full'
+            }`}
+            dangerouslySetInnerHTML={{ __html: barcodeSvg }}
+          />
+        ) : (
+          <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
+            “{card.value}” is not a valid {formatLabels[card.format]} number
+          </p>
+        )}
+        <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-muted-foreground/80">
+          {card.value}
+        </p>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {photoPaths.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+            className="overflow-hidden"
+          >
+            <div className="flex gap-2 px-5 pb-4">
+              {photoPaths.map(side => {
+                const path = card.photos[side]
+                return path !== undefined && <PassPhoto key={side} side={side} path={path} onOpen={setViewerPath} />
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2.5">
+          <CalendarIcon className="size-4 text-muted-foreground/70" />
+          Added {formatAddedAt(card.addedAt)}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 px-4 pb-4">
+        <button
+          onClick={() => onToggleFavorite(card.id)}
+          className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
+        >
+          <StarIcon className={`size-4 ${card.favorite ? 'fill-amber-400 stroke-none' : ''}`} />
+          {card.favorite ? 'Unpin' : 'Favorite'}
+        </button>
+
+        <button
+          onClick={() => onEdit(card.id)}
+          className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
+        >
+          <PencilIcon className="size-4" />
+          Edit
+        </button>
+
+        <button
+          onClick={() => onDelete(card.id)}
+          className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-destructive py-2.5 text-sm font-semibold text-white hover:bg-destructive/80`}
+        >
+          <Trash2Icon className="size-4" />
+          Remove
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {viewerPath !== null && <PhotoViewer path={viewerPath} onClose={() => setViewerPath(null)} />}
+      </AnimatePresence>
+    </>
+  )
+}
+
 type WallPassProps = {
   card: Card
   active: boolean
@@ -85,9 +182,6 @@ export function WallPass({
   onToggleFavorite,
 }: WallPassProps) {
   const gridTile = view === 'grid' && !active
-  const barcodeSvg = active ? renderBarcodeSvg(card.value, card.format) : null
-  const [viewerPath, setViewerPath] = useState<string | null>(null)
-  const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
   const coverSrc = usePhotoSrc(card.cover !== undefined ? card.photos[card.cover.side] : undefined)
   const photoFace = card.cover !== undefined && coverSrc !== null
 
@@ -223,88 +317,9 @@ export function WallPass({
             transition={{ type: 'spring', stiffness: 400, damping: 34 }}
             className="overflow-hidden"
           >
-            <div className="mx-5 border-t-2 border-dashed border-border" />
-
-            <div className="flex flex-col gap-2.5 p-5 pb-4">
-              {barcodeSvg !== null ? (
-                // always a white plate so barcodes stay scanner-readable in dark mode
-                <div
-                  className={`rounded-md bg-white px-3 py-2 ${
-                    squareFormats.has(card.format)
-                      ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
-                      : '[&_svg]:h-auto [&_svg]:w-full'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: barcodeSvg }}
-                />
-              ) : (
-                <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
-                  “{card.value}” is not a valid {formatLabels[card.format]} number
-                </p>
-              )}
-              <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-muted-foreground/80">
-                {card.value}
-              </p>
-            </div>
-
-            <AnimatePresence initial={false}>
-              {photoPaths.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 34 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex gap-2 px-5 pb-4">
-                    {photoPaths.map(side => {
-                      const path = card.photos[side]
-                      return (
-                        path !== undefined && <PassPhoto key={side} side={side} path={path} onOpen={setViewerPath} />
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
-              <p className="flex items-center gap-2.5">
-                <CalendarIcon className="size-4 text-muted-foreground/70" />
-                Added {formatAddedAt(card.addedAt)}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 px-4 pb-4">
-              <button
-                onClick={() => onToggleFavorite(card.id)}
-                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
-              >
-                <StarIcon className={`size-4 ${card.favorite ? 'fill-amber-400 stroke-none' : ''}`} />
-                {card.favorite ? 'Unpin' : 'Favorite'}
-              </button>
-
-              <button
-                onClick={() => onEdit(card.id)}
-                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
-              >
-                <PencilIcon className="size-4" />
-                Edit
-              </button>
-
-              <button
-                onClick={() => onDelete(card.id)}
-                className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-destructive py-2.5 text-sm font-semibold text-white hover:bg-destructive/80`}
-              >
-                <Trash2Icon className="size-4" />
-                Remove
-              </button>
-            </div>
+            <PassDetails card={card} onEdit={onEdit} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
           </motion.div>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {viewerPath !== null && <PhotoViewer path={viewerPath} onClose={() => setViewerPath(null)} />}
       </AnimatePresence>
     </motion.div>
   )
