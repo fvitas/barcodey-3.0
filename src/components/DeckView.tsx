@@ -11,7 +11,9 @@ type DeckViewProps = {
   expandedCardId: string | null
   resetSignal: string
   initialIndex: number
+  canReorder: boolean
   onIndexChange: (index: number) => void
+  onReorder: (activeId: string, overId: string) => void
   onToggle: (id: string) => void
   onEdit: (id: string) => void
   onDelete: (id: string) => void
@@ -28,6 +30,9 @@ const tapSlop = 6
 const swipeDistance = 90
 const swipeVelocity = 0.5 // px/ms — momentum beats distance
 const coastTime = 220 // ms of flick velocity projected into the snap target
+const holdDelay = 260 // ms press-and-hold before a card lifts for reorder
+const liftEdgeZone = 70 // px from the stage edges where a lifted card auto-scrolls the conveyor
+const liftEdgeSpeed = 7 // px/frame at the deepest point of the edge zone
 
 const slotEase = 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out'
 
@@ -96,6 +101,9 @@ type Gesture = {
   vy: number
   moved: boolean
   axis: 'x' | 'y' | null
+  lift: boolean
+  liftY: number // the card's translateY at the moment it lifted
+  targetIndex: number
 }
 
 export function DeckView({
@@ -103,7 +111,9 @@ export function DeckView({
   expandedCardId,
   resetSignal,
   initialIndex,
+  canReorder,
   onIndexChange,
+  onReorder,
   onToggle,
   onEdit,
   onDelete,
@@ -119,6 +129,8 @@ export function DeckView({
   const p = useRef(spacing * Math.max(0, initialIndex))
   const raf = useRef(0)
   const wheelIdle = useRef(0)
+  const holdTimer = useRef(0)
+  const liftRaf = useRef(0)
   const placed = useRef(new Set<string>())
   const arrivals = useRef(new Set<string>())
   const gesture = useRef<Gesture | null>(null)
@@ -151,14 +163,32 @@ export function DeckView({
     return Math.max(0, Math.min(maxScroll, Math.round(target / spacing) * spacing))
   }
 
+  function applySlot(el: HTMLDivElement, index: number, soft: number, live: boolean, zCap: number) {
+    if (geo === null) return
+    const raw = geo.frontY - spacing * index + soft
+    el.style.transition = live || reduceMotion ? 'none' : slotEase
+    el.style.transform = `translateY(${conveyorY(index, soft, geo)}px)`
+    // stack above: nearer on top; passing/pile: over the front, newest pile card on top — all below the nav (z-30)
+    // z is slot-relative, not index-based: absolute indexes tie once they clamp, flipping deep cards' paint order
+    if (raw > geo.frontY + 1) {
+      const depth = (raw - geo.frontY) / spacing
+      el.style.zIndex = String(Math.min(zCap, Math.max(21, 29 - Math.round(depth - 1))))
+    } else {
+      const slotsAbove = Math.max(0, Math.round((geo.frontY - raw) / spacing))
+      el.style.zIndex = String(Math.max(1, 20 - slotsAbove))
+    }
+    el.style.opacity = '1'
+    el.style.pointerEvents = 'auto'
+  }
+
   function layout(live: boolean) {
     if (geo === null) return
     const soft = softClamp(p.current, maxScroll)
     order.forEach((id, index) => {
       const el = cardEls.current.get(id)
       if (el === undefined) return
-      el.style.transition = live || reduceMotion ? 'none' : slotEase
       if (open) {
+        el.style.transition = live || reduceMotion ? 'none' : slotEase
         if (id === expandedCardId) {
           el.style.transform = `translateY(${topPad}px)`
           el.style.zIndex = '50'
@@ -171,19 +201,21 @@ export function DeckView({
         }
         return
       }
-      const raw = geo.frontY - spacing * index + soft
-      el.style.transform = `translateY(${conveyorY(index, soft, geo)}px)`
-      // stack above: nearer on top; passing/pile: over the front, newest pile card on top — all below the nav (z-30)
-      // z is slot-relative, not index-based: absolute indexes tie once they clamp, flipping deep cards' paint order
-      if (raw > geo.frontY + 1) {
-        const depth = (raw - geo.frontY) / spacing
-        el.style.zIndex = String(Math.min(29, Math.max(21, 29 - Math.round(depth - 1))))
-      } else {
-        const slotsAbove = Math.max(0, Math.round((geo.frontY - raw) / spacing))
-        el.style.zIndex = String(Math.max(1, 20 - slotsAbove))
-      }
-      el.style.opacity = '1'
-      el.style.pointerEvents = 'auto'
+      applySlot(el, index, soft, live, 29)
+    })
+  }
+
+  // while a card is lifted the rest of the deck lays out around a gap at the drop target
+  function layoutLift(live: boolean) {
+    const active = gesture.current
+    if (geo === null || active === null || !active.lift) return
+    const soft = softClamp(p.current, maxScroll)
+    const rest = orderRef.current.filter(id => id !== active.cardId)
+    rest.forEach((id, restIndex) => {
+      const el = cardEls.current.get(id)
+      if (el === undefined) return
+      const displayIndex = restIndex >= active.targetIndex ? restIndex + 1 : restIndex
+      applySlot(el, displayIndex, soft, live, 28) // lifted card owns 29
     })
   }
 
@@ -238,8 +270,57 @@ export function DeckView({
     setOrder(next)
   }
 
+  function liftTargetIndex(cardY: number, soft: number): number {
+    if (geo === null) return 0
+    return Math.max(0, Math.min(count - 1, Math.round((geo.frontY + soft - cardY) / spacing)))
+  }
+
+  function beginLift(cardId: string) {
+    const active = gesture.current
+    if (active === null || active.cardId !== cardId || active.moved || geo === null) return
+    const index = orderRef.current.indexOf(cardId)
+    const el = cardEls.current.get(cardId)
+    if (index === -1 || el === undefined) return
+    const soft = softClamp(p.current, maxScroll)
+    active.lift = true
+    active.moved = true // the drop must not count as a tap
+    active.liftY = conveyorY(index, soft, geo)
+    active.targetIndex = index
+    el.style.transition = reduceMotion ? 'none' : 'transform 0.18s ease-out'
+    el.style.transform = `translateY(${active.liftY}px) scale(1.04)`
+    el.style.zIndex = '29'
+    el.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.35)'
+    navigator.vibrate?.(10)
+    liftRaf.current = requestAnimationFrame(liftTick)
+  }
+
+  // holding a lifted card near the stage edges conveys the deck under it
+  function liftTick() {
+    const active = gesture.current
+    const stage = stageRef.current
+    if (active === null || !active.lift || geo === null || stage === null) return
+    const rect = stage.getBoundingClientRect()
+    let delta = 0
+    if (active.lastY < rect.top + liftEdgeZone) {
+      delta = (1 - (active.lastY - rect.top) / liftEdgeZone) * liftEdgeSpeed
+    } else if (active.lastY > rect.bottom - liftEdgeZone) {
+      delta = -(1 - (rect.bottom - active.lastY) / liftEdgeZone) * liftEdgeSpeed
+    }
+    if (delta !== 0) {
+      const next = Math.max(0, Math.min(maxScroll, p.current + delta))
+      if (next !== p.current) {
+        p.current = next
+        const soft = softClamp(p.current, maxScroll)
+        active.targetIndex = liftTargetIndex(active.liftY + (active.lastY - active.startY), soft)
+        layoutLift(true)
+      }
+    }
+    liftRaf.current = requestAnimationFrame(liftTick)
+  }
+
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>, cardId: string) {
     if (gesture.current !== null) return
+    if (event.pointerType === 'mouse' && event.button !== 0) return
     if (open && cardId !== expandedCardId) return
     cancelAnimationFrame(raf.current)
     clearTimeout(wheelIdle.current)
@@ -256,6 +337,13 @@ export function DeckView({
       vy: 0,
       moved: false,
       axis: null,
+      lift: false,
+      liftY: 0,
+      targetIndex: -1,
+    }
+    if (canReorder && !open && count > 1) {
+      clearTimeout(holdTimer.current)
+      holdTimer.current = window.setTimeout(() => beginLift(cardId), holdDelay)
     }
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -279,9 +367,24 @@ export function DeckView({
     active.lastY = event.clientY
     active.lastT = now
     active.dx = dx
+    if (active.lift) {
+      const el = cardEls.current.get(active.cardId)
+      if (el !== undefined) {
+        const cardY = active.liftY + dy
+        el.style.transition = 'none'
+        el.style.transform = `translateY(${cardY}px) scale(1.04)`
+        const target = liftTargetIndex(cardY, softClamp(p.current, maxScroll))
+        if (target !== active.targetIndex) {
+          active.targetIndex = target
+          layoutLift(false)
+        }
+      }
+      return
+    }
     if (!active.moved && (Math.abs(dx) > tapSlop || Math.abs(dy) > tapSlop)) {
       active.moved = true
       active.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y'
+      clearTimeout(holdTimer.current) // real movement before the hold fires means scroll or swipe, not lift
     }
     if (!active.moved || open) return
     if (active.axis === 'x') {
@@ -302,6 +405,25 @@ export function DeckView({
     const active = gesture.current
     if (active === null || active.pointerId !== event.pointerId) return
     gesture.current = null
+    clearTimeout(holdTimer.current)
+    if (active.lift) {
+      cancelAnimationFrame(liftRaf.current)
+      const el = cardEls.current.get(active.cardId)
+      if (el !== undefined) el.style.boxShadow = ''
+      const previous = orderRef.current
+      const from = previous.indexOf(active.cardId)
+      const target = active.targetIndex
+      if (cancelled || from === -1 || target === from) {
+        snap(0) // edge auto-scroll can leave the conveyor between slots
+        return
+      }
+      p.current = clampSnap(p.current)
+      const next = previous.filter(id => id !== active.cardId)
+      next.splice(target, 0, active.cardId)
+      setOrder(next)
+      onReorder(active.cardId, previous[target])
+      return
+    }
     if (!active.moved) {
       if (cancelled) return
       // taps inside the unfolded details (actions, photos) handle themselves
@@ -420,7 +542,9 @@ export function DeckView({
   useEffect(() => {
     return () => {
       cancelAnimationFrame(raf.current)
+      cancelAnimationFrame(liftRaf.current)
       clearTimeout(wheelIdle.current)
+      clearTimeout(holdTimer.current)
     }
   }, [])
 
@@ -458,7 +582,7 @@ export function DeckView({
             onPointerMove={handlePointerMove}
             onPointerUp={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, false)}
             onPointerCancel={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, true)}
-            className={`absolute top-0 left-0 w-full select-none rounded-2xl bg-card shadow-lg shadow-slate-900/15 will-change-transform ${
+            className={`absolute top-0 left-0 w-full select-none rounded-2xl bg-card shadow-lg shadow-slate-900/15 will-change-transform [-webkit-touch-callout:none] ${
               isOpen ? 'z-50' : 'cursor-grab touch-none active:cursor-grabbing'
             }`}
           >

@@ -304,7 +304,9 @@ export function WalletScreen() {
             expandedCardId={state.expandedCardId}
             resetSignal={`${state.sort}|${query.trim().toLowerCase()}`}
             initialIndex={state.deckIndex}
+            canReorder={state.sort === 'manual' && !searching}
             onIndexChange={handleDeckIndexChange}
+            onReorder={moveCard}
             onToggle={handleToggle}
             onEdit={setEditingId}
             onDelete={handleDelete}
