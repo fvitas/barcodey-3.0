@@ -553,7 +553,7 @@ export function DeckView({
   return (
     <div
       ref={stageRef}
-      className={`relative h-full ${open ? 'overflow-y-auto' : 'overflow-hidden'}`}
+      className={`relative h-full rounded-t-2xl ${open ? 'overflow-y-auto' : 'overflow-hidden'}`}
     >
       <AnimatePresence>
         {open && (
