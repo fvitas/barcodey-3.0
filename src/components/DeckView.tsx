@@ -26,6 +26,7 @@ const bottomPad = 84 // clears the floating nav (60px pill + 16px margin) with a
 const pilePeek = 16 // visible sliver of the newest passed card at the bottom bezel
 const pileStep = 5
 const pileMax = 2 // older pile cards fan at most this many steps above the newest
+const pileShrink = 0.05 // each fan step narrows so corner arcs nest inside the card in front
 const tapSlop = 6
 const swipeDistance = 90
 const swipeVelocity = 0.5 // px/ms — momentum beats distance
@@ -49,6 +50,13 @@ function conveyorY(index: number, soft: number, geo: Geometry): number {
   const depth = (raw - geo.frontY) / spacing // 1 = just passed, 2 = one more ago…
   if (depth >= 1) return geo.pileBase - Math.min(depth - 1, pileMax) * pileStep
   return geo.frontY + (geo.pileBase - geo.frontY) * depth
+}
+
+function conveyorScale(index: number, soft: number, geo: Geometry): number {
+  const raw = geo.frontY - spacing * index + soft
+  const depth = (raw - geo.frontY) / spacing
+  if (depth < 1) return 1
+  return 1 - Math.min(depth - 1, pileMax) * pileShrink
 }
 
 function DeckFace({ card, open }: { card: Card; open: boolean }) {
@@ -101,6 +109,7 @@ type Gesture = {
   vy: number
   moved: boolean
   axis: 'x' | 'y' | null
+  escaped: boolean // x-swipes go position:fixed to escape the stage clip and reach the screen edge
   lift: boolean
   liftY: number // the card's translateY at the moment it lifted
   targetIndex: number
@@ -167,7 +176,7 @@ export function DeckView({
     if (geo === null) return
     const raw = geo.frontY - spacing * index + soft
     el.style.transition = live || reduceMotion ? 'none' : slotEase
-    el.style.transform = `translateY(${conveyorY(index, soft, geo)}px)`
+    el.style.transform = `translateY(${conveyorY(index, soft, geo)}px) scale(${conveyorScale(index, soft, geo)})`
     // stack above: nearer on top; passing/pile: over the front, newest pile card on top — all below the nav (z-30)
     // z is slot-relative, not index-based: absolute indexes tie once they clamp, flipping deep cards' paint order
     if (raw > geo.frontY + 1) {
@@ -275,6 +284,11 @@ export function DeckView({
     return Math.max(0, Math.min(count - 1, Math.round((geo.frontY + soft - cardY) / spacing)))
   }
 
+  function liftDragY(active: Gesture, dy: number): number {
+    if (dims === null) return active.liftY + dy
+    return Math.max(-8, Math.min(dims.height - 40, active.liftY + dy)) // keep the escaped card off the header
+  }
+
   function beginLift(cardId: string) {
     const active = gesture.current
     if (active === null || active.cardId !== cardId || active.moved || geo === null) return
@@ -286,6 +300,14 @@ export function DeckView({
     active.moved = true // the drop must not count as a tap
     active.liftY = conveyorY(index, soft, geo)
     active.targetIndex = index
+    if (stageRef.current !== null) {
+      active.escaped = true
+      const rect = stageRef.current.getBoundingClientRect()
+      el.style.position = 'fixed'
+      el.style.top = `${rect.top}px`
+      el.style.left = `${rect.left}px`
+      el.style.width = `${rect.width}px`
+    }
     el.style.transition = reduceMotion ? 'none' : 'transform 0.18s ease-out'
     el.style.transform = `translateY(${active.liftY}px) scale(1.04)`
     el.style.zIndex = '29'
@@ -311,7 +333,7 @@ export function DeckView({
       if (next !== p.current) {
         p.current = next
         const soft = softClamp(p.current, maxScroll)
-        active.targetIndex = liftTargetIndex(active.liftY + (active.lastY - active.startY), soft)
+        active.targetIndex = liftTargetIndex(liftDragY(active, active.lastY - active.startY), soft)
         layoutLift(true)
       }
     }
@@ -337,6 +359,7 @@ export function DeckView({
       vy: 0,
       moved: false,
       axis: null,
+      escaped: false,
       lift: false,
       liftY: 0,
       targetIndex: -1,
@@ -370,7 +393,7 @@ export function DeckView({
     if (active.lift) {
       const el = cardEls.current.get(active.cardId)
       if (el !== undefined) {
-        const cardY = active.liftY + dy
+        const cardY = liftDragY(active, dy)
         el.style.transition = 'none'
         el.style.transform = `translateY(${cardY}px) scale(1.04)`
         const target = liftTargetIndex(cardY, softClamp(p.current, maxScroll))
@@ -391,9 +414,18 @@ export function DeckView({
       const el = cardEls.current.get(active.cardId)
       const index = orderRef.current.indexOf(active.cardId)
       if (el !== undefined && index !== -1) {
+        if (!active.escaped && stageRef.current !== null) {
+          active.escaped = true
+          const rect = stageRef.current.getBoundingClientRect()
+          el.style.position = 'fixed'
+          el.style.top = `${rect.top}px`
+          el.style.left = `${rect.left}px`
+          el.style.width = `${rect.width}px`
+        }
         el.style.transition = 'none'
-        const y = conveyorY(index, softClamp(p.current, maxScroll), geo)
-        el.style.transform = `translate(${dx}px, ${y}px) rotate(${dx * 0.05}deg)`
+        const soft = softClamp(p.current, maxScroll)
+        const y = conveyorY(index, soft, geo)
+        el.style.transform = `translate(${dx}px, ${y}px) rotate(${dx * 0.05}deg) scale(${conveyorScale(index, soft, geo)})`
       }
     } else {
       p.current += stepY
@@ -409,7 +441,14 @@ export function DeckView({
     if (active.lift) {
       cancelAnimationFrame(liftRaf.current)
       const el = cardEls.current.get(active.cardId)
-      if (el !== undefined) el.style.boxShadow = ''
+      if (el !== undefined) {
+        el.style.boxShadow = ''
+        // back to stage coordinates — same visual spot, the slot transition takes it from here
+        el.style.position = ''
+        el.style.top = ''
+        el.style.left = ''
+        el.style.width = ''
+      }
       const previous = orderRef.current
       const from = previous.indexOf(active.cardId)
       const target = active.targetIndex
@@ -433,6 +472,16 @@ export function DeckView({
     }
     if (open) return
     if (active.axis === 'x') {
+      if (active.escaped) {
+        const el = cardEls.current.get(active.cardId)
+        if (el !== undefined) {
+          // back to stage coordinates — same visual spot, the slot transition takes it from here
+          el.style.position = ''
+          el.style.top = ''
+          el.style.left = ''
+          el.style.width = ''
+        }
+      }
       if (!cancelled && (Math.abs(active.dx) > swipeDistance || Math.abs(active.vx) > swipeVelocity)) {
         toBack(active.cardId)
       } else {
@@ -512,7 +561,7 @@ export function DeckView({
       if (el === undefined || placed.current.has(id)) return
       el.style.transition = 'none'
       const startY = arrivals.current.has(id) ? dims.height + 30 : conveyorY(index, soft, geo)
-      el.style.transform = `translateY(${startY}px)`
+      el.style.transform = `translateY(${startY}px) scale(${arrivals.current.has(id) ? 1 : conveyorScale(index, soft, geo)})`
       void el.offsetHeight
     })
     arrivals.current.clear()
@@ -582,7 +631,7 @@ export function DeckView({
             onPointerMove={handlePointerMove}
             onPointerUp={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, false)}
             onPointerCancel={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, true)}
-            className={`absolute top-0 left-0 w-full select-none rounded-2xl bg-card shadow-lg shadow-slate-900/15 will-change-transform [-webkit-touch-callout:none] ${
+            className={`absolute top-0 left-0 w-full origin-top select-none rounded-2xl bg-card shadow-lg shadow-slate-900/15 will-change-transform [-webkit-touch-callout:none] ${
               isOpen ? 'z-50' : 'cursor-grab touch-none active:cursor-grabbing'
             }`}
           >
