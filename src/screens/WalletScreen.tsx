@@ -20,13 +20,14 @@ import {
   CalendarArrowUpIcon,
   CameraIcon,
   CheckIcon,
-  FlaskConicalIcon,
+  DicesIcon,
   GalleryHorizontalEndIcon,
   GripVerticalIcon,
   LayoutGridIcon,
   Rows3Icon,
   SearchIcon,
   SettingsIcon,
+  SquareMinusIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -198,6 +199,11 @@ export function WalletScreen() {
     update({ deckIndex: index })
   }
 
+  function handleRemoveFirstCard() {
+    const first = visibleCards[0]
+    if (first !== undefined) handleDelete(first.id)
+  }
+
   function handleToggleFavorite(id: string) {
     const card = cards.find(current => current.id === id)
     if (card !== undefined) {
@@ -215,13 +221,22 @@ export function WalletScreen() {
 
           <div className="flex gap-2">
             {import.meta.env.DEV && (
-              <button
-                onClick={() => addCard(createSampleCard())}
-                className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm`}
-                aria-label="Add sample card"
-              >
-                <FlaskConicalIcon className="size-5" />
-              </button>
+              <>
+                <button
+                  onClick={() => addCard(createSampleCard())}
+                  className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm`}
+                  aria-label="Add sample card"
+                >
+                  <DicesIcon className="size-5" />
+                </button>
+                <button
+                  onClick={handleRemoveFirstCard}
+                  className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-amber-500 shadow-sm`}
+                  aria-label="Remove first card"
+                >
+                  <SquareMinusIcon className="size-5" />
+                </button>
+              </>
             )}
 
             <DropdownMenu>
