@@ -206,8 +206,8 @@ export function WalletScreen() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
-      <header className="px-5 pt-8 pb-4">
+    <div className="mx-auto flex h-dvh w-full max-w-[26rem] flex-col">
+      <header className="shrink-0 px-5 pt-8 pb-4">
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
             Barcodey<span className="text-primary">.</span>
@@ -296,7 +296,8 @@ export function WalletScreen() {
         </div>
       </header>
 
-      <main className="px-5 pb-32">
+      {/* deck fills the space and scrolls internally; wall views scroll here, past the floating nav */}
+      <main className={`min-h-0 flex-1 px-5 ${state.view === 'deck' ? 'overflow-hidden' : 'overflow-y-auto pb-32'}`}>
         {state.view === 'deck' ? (
           <DeckView
             cards={visibleCards}

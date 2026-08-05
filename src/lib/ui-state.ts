@@ -16,7 +16,7 @@ export type UiState = z.infer<typeof uiStateSchema>
 
 export const defaultUiState: UiState = {
   path: '/',
-  view: 'list',
+  view: 'deck',
   sort: 'manual',
   expandedCardId: null,
   appearance: 'system',

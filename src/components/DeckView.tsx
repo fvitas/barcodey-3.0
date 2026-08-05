@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon, StarIcon } from 'lucide-react'
+import { StarIcon } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CoverImage } from '@/components/CoverAdjust'
@@ -20,7 +20,7 @@ type DeckViewProps = {
 
 const spacing = 66 // visible top strip of each stacked edge
 const topPad = 8
-const bottomPad = 60 // room under the front slot for the counter row
+const bottomPad = 84 // clears the floating nav (60px pill + 16px margin) with an 8px gap
 const pilePeek = 16 // visible sliver of the newest passed card at the bottom bezel
 const pileStep = 5
 const pileMax = 2 // older pile cards fan at most this many steps above the newest
@@ -114,7 +114,6 @@ export function DeckView({
   const [dims, setDims] = useState<{ width: number; height: number } | null>(null)
 
   const stageRef = useRef<HTMLDivElement>(null)
-  const counterRef = useRef<HTMLParagraphElement>(null)
   const cardEls = useRef(new Map<string, HTMLDivElement>())
   const orderRef = useRef(order)
   const p = useRef(spacing * Math.max(0, initialIndex))
@@ -174,14 +173,18 @@ export function DeckView({
       }
       const raw = geo.frontY - spacing * index + soft
       el.style.transform = `translateY(${conveyorY(index, soft, geo)}px)`
-      // stack above: nearer on top; passing/pile: over the front, newest pile card on top
-      el.style.zIndex = raw > geo.frontY + 1 ? String(Math.min(39, 31 + index)) : String(Math.max(1, 30 - index))
+      // stack above: nearer on top; passing/pile: over the front, newest pile card on top — all below the nav (z-30)
+      // z is slot-relative, not index-based: absolute indexes tie once they clamp, flipping deep cards' paint order
+      if (raw > geo.frontY + 1) {
+        const depth = (raw - geo.frontY) / spacing
+        el.style.zIndex = String(Math.min(29, Math.max(21, 29 - Math.round(depth - 1))))
+      } else {
+        const slotsAbove = Math.max(0, Math.round((geo.frontY - raw) / spacing))
+        el.style.zIndex = String(Math.max(1, 20 - slotsAbove))
+      }
       el.style.opacity = '1'
       el.style.pointerEvents = 'auto'
     })
-    if (counterRef.current !== null) {
-      counterRef.current.textContent = `${frontIndex() + 1} / ${count}`
-    }
   }
 
   function reportIndex() {
@@ -426,7 +429,7 @@ export function DeckView({
   return (
     <div
       ref={stageRef}
-      className={`relative h-[calc(100dvh-16.5rem)] min-h-[24rem] ${open ? 'overflow-y-auto' : 'overflow-hidden'}`}
+      className={`relative h-full ${open ? 'overflow-y-auto' : 'overflow-hidden'}`}
     >
       <AnimatePresence>
         {open && (
@@ -478,36 +481,6 @@ export function DeckView({
         )
       })}
 
-      {geo !== null && count > 1 && (
-        <div
-          style={{ top: geo.frontY + geo.cardH + 12 }}
-          className={`absolute inset-x-0 z-[39] flex items-center justify-center gap-4 transition-opacity duration-200 ${
-            open ? 'pointer-events-none opacity-0' : ''
-          }`}
-        >
-          {import.meta.env.DEV && (
-            <button
-              onClick={() => animateP(clampSnap(p.current - spacing))}
-              aria-label="Mock scroll back"
-              className="rounded-full bg-card p-1.5 text-amber-500 shadow-sm"
-            >
-              <ChevronLeftIcon className="size-4" />
-            </button>
-          )}
-          <p ref={counterRef} className="text-center text-xs font-semibold tracking-widest text-muted-foreground/70">
-            {frontIndex() + 1} / {count}
-          </p>
-          {import.meta.env.DEV && (
-            <button
-              onClick={() => animateP(clampSnap(p.current + spacing))}
-              aria-label="Mock scroll forward"
-              className="rounded-full bg-card p-1.5 text-amber-500 shadow-sm"
-            >
-              <ChevronRightIcon className="size-4" />
-            </button>
-          )}
-        </div>
-      )}
     </div>
   )
 }
