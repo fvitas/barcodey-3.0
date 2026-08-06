@@ -291,9 +291,8 @@ export function DeckView({
     }
     const index = previous.indexOf(cardId)
     const front = frontIndex()
-    if (index === front && front === previous.length - 1) {
-      // end of the conveyor: cycle — the swiped card dives under the pile and the card below surfaces
-      setOrder([cardId, ...previous.filter(id => id !== cardId)])
+    if (index === previous.length - 1) {
+      layout(false) // already at the back: reordering is a no-op, snap home instead of sticking mid-fling
       return
     }
     const next = previous.filter(id => id !== cardId)
@@ -434,8 +433,9 @@ export function DeckView({
     }
     if (!active.moved || open) return
     if (active.axis === 'x') {
-      const el = cardEls.current.get(active.cardId)
       const index = orderRef.current.indexOf(active.cardId)
+      if (index === orderRef.current.length - 1) return // back card: no swipe, nothing behind it to go to
+      const el = cardEls.current.get(active.cardId)
       if (el !== undefined && index !== -1) {
         if (!active.escaped && stageRef.current !== null) {
           active.escaped = true
