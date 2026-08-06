@@ -1,6 +1,6 @@
 import { CalendarIcon, ChevronDownIcon, PencilIcon, StarIcon, Trash2Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CoverImage } from '@/components/CoverAdjust'
 import { usePhotoSrc } from '@/components/PhotoField'
@@ -71,13 +71,15 @@ type PassDetailsProps = {
 
 // the unfolded half of a pass — shared by the wall (list/grid) and the deck so the views never drift
 export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleFavorite }: PassDetailsProps) {
-  const barcodeSvg = renderBarcodeSvg(card.value, card.format)
   const square = squareFormats.has(card.format)
-  // taller 1D bars scan better and the x-scale stays proportional, so non-uniform stretch is safe
-  const plateSvg =
-    barcodeSvg !== null && stretch && !square
-      ? barcodeSvg.replace('<svg', '<svg preserveAspectRatio="none"')
-      : barcodeSvg
+  // stable object identity: react 19 re-sets innerHTML (remounting the svg) whenever
+  // dangerouslySetInnerHTML receives a new object, even with an identical string
+  const plateHtml = useMemo(() => {
+    const svg = renderBarcodeSvg(card.value, card.format)
+    if (svg === null) return null
+    // taller 1D bars scan better and the x-scale stays proportional, so non-uniform stretch is safe
+    return { __html: stretch && !square ? svg.replace('<svg', '<svg preserveAspectRatio="none"') : svg }
+  }, [card.value, card.format, stretch, square])
   const [viewerPath, setViewerPath] = useState<string | null>(null)
   const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
 
@@ -85,8 +87,8 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
     <>
       <div className="mx-5 border-t-2 border-dashed border-border" />
 
-      <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && barcodeSvg !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
-        {plateSvg !== null ? (
+      <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && plateHtml !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
+        {plateHtml !== null ? (
           // always a white plate so barcodes stay scanner-readable in dark mode
           <div
             className={`rounded-md bg-white px-3 py-2 ${
@@ -96,7 +98,7 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
                   ? 'max-h-48 min-h-24 flex-1 [&_svg]:h-full [&_svg]:w-full' // capped so bars stay believable
                   : '[&_svg]:h-auto [&_svg]:max-h-24 [&_svg]:w-full' // squat symbologies (EAN-8) balloon at full width
             }`}
-            dangerouslySetInnerHTML={{ __html: plateSvg }}
+            dangerouslySetInnerHTML={plateHtml}
           />
         ) : (
           <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">

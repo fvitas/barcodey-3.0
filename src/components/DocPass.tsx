@@ -1,6 +1,6 @@
 import { CalendarIcon, ChevronDownIcon, HashIcon, IdCardIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CoverImage } from '@/components/CoverAdjust'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PhotoViewer } from '@/components/WallPass'
@@ -54,7 +54,13 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
   const faceCover = doc.cover ?? (faceSide !== undefined ? { side: faceSide, scale: 1, x: 0, y: 0 } : undefined)
   const faceSrc = usePhotoSrc(faceSide !== undefined ? doc.photos[faceSide] : undefined)
   const photoFace = faceCover !== undefined && faceSrc !== null
-  const barcodeSvg = active && doc.barcode !== undefined ? renderBarcodeSvg(doc.barcode.value, doc.barcode.format) : null
+  // stable object identity: react 19 re-sets innerHTML (remounting the svg) whenever
+  // dangerouslySetInnerHTML receives a new object, even with an identical string
+  const barcodeHtml = useMemo(() => {
+    if (!active || doc.barcode === undefined) return null
+    const svg = renderBarcodeSvg(doc.barcode.value, doc.barcode.format)
+    return svg === null ? null : { __html: svg }
+  }, [active, doc.barcode])
 
   return (
     <motion.div
@@ -156,7 +162,7 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
 
             {doc.barcode !== undefined && (
               <div className="flex flex-col gap-2.5 px-5 pt-4 pb-1">
-                {barcodeSvg !== null ? (
+                {barcodeHtml !== null ? (
                   // always a white plate so barcodes stay scanner-readable in dark mode
                   <div
                     className={`rounded-md bg-white px-3 py-2 ${
@@ -164,7 +170,7 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
                         ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
                         : '[&_svg]:h-auto [&_svg]:w-full'
                     }`}
-                    dangerouslySetInnerHTML={{ __html: barcodeSvg }}
+                    dangerouslySetInnerHTML={barcodeHtml}
                   />
                 ) : (
                   <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
