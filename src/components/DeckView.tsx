@@ -21,8 +21,9 @@ type DeckViewProps = {
 }
 
 const spacing = 66 // visible top strip of each stacked edge
-const topPad = 8
 const bottomPad = 84 // clears the floating nav (60px pill + 16px margin) with an 8px gap
+const openRise = 64 // the open card rises out of the stage so its top lines up with the search bar
+const openBottomGap = 16
 const pilePeek = 16 // visible sliver of the newest passed card at the bottom bezel
 const pileStep = 5
 const pileMax = 2 // older pile cards fan at most this many steps above the newest
@@ -36,6 +37,7 @@ const liftEdgeZone = 70 // px from the stage edges where a lifted card auto-scro
 const liftEdgeSpeed = 7 // px/frame at the deepest point of the edge zone
 
 const slotEase = 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out'
+const glideEase = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 type Geometry = { cardH: number; frontY: number; pileBase: number }
 
@@ -65,8 +67,8 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
 
   return (
     <div
-      className={`relative flex aspect-[1.586] w-full flex-col justify-between p-4 ${cardThemeGradients[card.theme]} ${
-        open ? 'rounded-t-2xl' : 'rounded-2xl transition-[border-radius] delay-[180ms] duration-150 ease-out'
+      className={`relative flex aspect-[1.586] w-full flex-col justify-between p-4 shadow-lg shadow-slate-900/15 ${cardThemeGradients[card.theme]} ${
+        open ? 'rounded-t-2xl' : 'rounded-2xl transition-[border-radius] duration-[450ms] ease-out'
       }`}
     >
       {photoFace && card.cover !== undefined ? (
@@ -87,14 +89,14 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
               key="notch-left"
               initial={{ scale: 0 }}
               animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-              exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
+              exit={{ scale: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
               className="absolute -bottom-3 -left-3 z-10 size-6 rounded-full bg-background"
             />
             <motion.span
               key="notch-right"
               initial={{ scale: 0 }}
               animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-              exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
+              exit={{ scale: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
               className="absolute -right-3 -bottom-3 z-10 size-6 rounded-full bg-background"
             />
           </>
@@ -164,6 +166,8 @@ export function DeckView({
   const liftRaf = useRef(0)
   const placed = useRef(new Set<string>())
   const arrivals = useRef(new Set<string>())
+  const openFixed = useRef<string | null>(null) // card escaped to position:fixed while open
+  const unescapeTimer = useRef(0)
   const gesture = useRef<Gesture | null>(null)
   const lastReportedIndex = useRef(initialIndex)
   const lastIdsKey = useRef(cards.map(card => card.id).join('|'))
@@ -212,6 +216,26 @@ export function DeckView({
     el.style.pointerEvents = 'auto'
   }
 
+  // WAAPI movement for the open/close card: CSS transitions silently misfire on the
+  // position:fixed flip (engine coalescing), an Animation always runs and is interruption-safe
+  function glide(el: HTMLDivElement, write: () => void) {
+    const from = getComputedStyle(el).transform
+    el.getAnimations?.().forEach(animation => animation.cancel())
+    write() // leaves transition 'none' and the final transform in place
+    if (reduceMotion || from === 'none') return
+    el.animate?.([{ transform: from }, { transform: el.style.transform }], { duration: 450, easing: glideEase })
+  }
+
+  function releaseOpenCard(id: string) {
+    if (openFixed.current === id) openFixed.current = null
+    const el = cardEls.current.get(id)
+    if (el === undefined) return
+    el.style.position = ''
+    el.style.top = ''
+    el.style.left = ''
+    el.style.width = ''
+  }
+
   function layout(live: boolean) {
     if (geo === null) return
     const soft = softClamp(p.current, maxScroll)
@@ -219,16 +243,48 @@ export function DeckView({
       const el = cardEls.current.get(id)
       if (el === undefined) return
       if (open) {
-        el.style.transition = live || reduceMotion ? 'none' : slotEase
         if (id === expandedCardId) {
-          el.style.transform = `translateY(${topPad}px)`
+          // fixed positioning escapes the stage clip so the card can cover the search bar
+          if (openFixed.current !== id && stageRef.current !== null) {
+            if (openFixed.current !== null) releaseOpenCard(openFixed.current)
+            const rect = stageRef.current.getBoundingClientRect()
+            el.style.position = 'fixed'
+            el.style.top = `${rect.top}px`
+            el.style.left = `${rect.left}px`
+            el.style.width = `${rect.width}px`
+            openFixed.current = id
+          }
+          const target = `translateY(${-openRise}px)`
+          if (el.style.transform !== target) {
+            // a reopen mid-close: stop the panel tuck so framer's enter animation shows
+            el.querySelector('[data-deck-panel]')?.getAnimations?.().forEach(animation => animation.cancel())
+            glide(el, () => {
+              el.style.transition = 'none'
+              el.style.transform = target
+            })
+          }
           el.style.zIndex = '50'
           el.style.opacity = '1'
           el.style.pointerEvents = 'auto'
         } else {
+          el.style.transition = live || reduceMotion ? 'none' : slotEase
           el.style.transform = `translateY(${conveyorY(index, soft, geo) - 24}px)`
           el.style.opacity = '0'
           el.style.pointerEvents = 'none'
+        }
+        return
+      }
+      if (!live && id === openFixed.current) {
+        // returning from open: glide home while the panel tucks under the face — both WAAPI,
+        // started in one tick; framer's exit starts a frame late, which flickered at the tap
+        glide(el, () => applySlot(el, index, soft, true, 29))
+        const panel = el.querySelector('[data-deck-panel]')
+        if (panel !== null && !reduceMotion) {
+          panel.getAnimations?.().forEach(animation => animation.cancel())
+          panel.animate?.([{ transform: 'translateY(0px)' }, { transform: 'translateY(-100%)' }], {
+            duration: 450,
+            easing: glideEase,
+          })
         }
         return
       }
@@ -608,6 +664,18 @@ export function DeckView({
     reportIndex()
   }, [orderKey, dims, expandedCardId, reduceMotion])
 
+  // on close the card stays fixed through the slide home, then rejoins the stage clip
+  useEffect(() => {
+    clearTimeout(unescapeTimer.current)
+    if (expandedCardId !== null || openFixed.current === null) return
+    const id = openFixed.current
+    if (reduceMotion) {
+      releaseOpenCard(id)
+      return
+    }
+    unescapeTimer.current = window.setTimeout(() => releaseOpenCard(id), 500) // 450ms glide + a buffer
+  }, [expandedCardId, reduceMotion])
+
   // desktop nicety: wheel scrolls the conveyor, snapping on idle
   // no dep array on purpose: the handler needs each render's fresh layout/snap closures
   useEffect(() => {
@@ -632,6 +700,7 @@ export function DeckView({
       cancelAnimationFrame(liftRaf.current)
       clearTimeout(wheelIdle.current)
       clearTimeout(holdTimer.current)
+      clearTimeout(unescapeTimer.current)
     }
   }, [])
 
@@ -670,7 +739,7 @@ export function DeckView({
             onPointerMove={handlePointerMove}
             onPointerUp={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, false)}
             onPointerCancel={(event: React.PointerEvent<HTMLDivElement>) => handlePointerEnd(event, true)}
-            className={`absolute top-0 left-0 w-full origin-top select-none rounded-2xl bg-card shadow-lg shadow-slate-900/15 will-change-transform [-webkit-touch-callout:none] ${
+            className={`absolute top-0 left-0 w-full origin-top select-none will-change-transform [-webkit-touch-callout:none] ${
               isOpen ? 'z-50' : 'cursor-grab touch-none active:cursor-grabbing'
             }`}
           >
@@ -678,20 +747,27 @@ export function DeckView({
 
             <AnimatePresence initial={false}>
               {isOpen && (
+                // fixed-height mask; the panel slides under the face with pure transforms, so no
+                // per-frame reflow of the barcode subtree (the height fold janked on iOS Safari)
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0 }}
-                  transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 34 }}
+                  style={
+                    geo === null || dims === null
+                      ? undefined
+                      : { height: Math.max(160, dims.height + openRise - geo.cardH - openBottomGap) }
+                  }
                   className="overflow-hidden"
                 >
-                  {/* the face stays pinned; only the details scroll when they don't fit the stage */}
-                  <div
-                    style={geo === null || dims === null ? undefined : { maxHeight: dims.height - geo.cardH - topPad * 2 }}
-                    className="overflow-y-auto overscroll-contain"
+                  <motion.div
+                    initial={{ y: '-100%' }}
+                    animate={{ y: 0 }}
+                    // the WAAPI tuck in layout() paints over this exit; it only delays the unmount
+                    exit={{ y: '-100%' }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex h-full flex-col overflow-y-auto overscroll-contain rounded-b-2xl bg-card"
+                    data-deck-panel
                   >
-                    <PassDetails card={card} onEdit={onEdit} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
-                  </div>
+                    <PassDetails card={card} stretch onEdit={onEdit} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>

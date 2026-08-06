@@ -63,14 +63,21 @@ export function PhotoViewer({ path, onClose }: { path: string; onClose: () => vo
 
 type PassDetailsProps = {
   card: Card
+  stretch?: boolean // deck open card: the barcode grows into the free space
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onToggleFavorite: (id: string) => void
 }
 
 // the unfolded half of a pass — shared by the wall (list/grid) and the deck so the views never drift
-export function PassDetails({ card, onEdit, onDelete, onToggleFavorite }: PassDetailsProps) {
+export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleFavorite }: PassDetailsProps) {
   const barcodeSvg = renderBarcodeSvg(card.value, card.format)
+  const square = squareFormats.has(card.format)
+  // taller 1D bars scan better and the x-scale stays proportional, so non-uniform stretch is safe
+  const plateSvg =
+    barcodeSvg !== null && stretch && !square
+      ? barcodeSvg.replace('<svg', '<svg preserveAspectRatio="none"')
+      : barcodeSvg
   const [viewerPath, setViewerPath] = useState<string | null>(null)
   const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
 
@@ -78,16 +85,18 @@ export function PassDetails({ card, onEdit, onDelete, onToggleFavorite }: PassDe
     <>
       <div className="mx-5 border-t-2 border-dashed border-border" />
 
-      <div className="flex flex-col gap-2.5 p-5 pb-4">
-        {barcodeSvg !== null ? (
+      <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && barcodeSvg !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
+        {plateSvg !== null ? (
           // always a white plate so barcodes stay scanner-readable in dark mode
           <div
             className={`rounded-md bg-white px-3 py-2 ${
-              squareFormats.has(card.format)
-                ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
-                : '[&_svg]:h-auto [&_svg]:max-h-24 [&_svg]:w-full' // squat symbologies (EAN-8) balloon at full width
+              square
+                ? `flex justify-center ${stretch ? 'min-h-0 flex-1 [&_svg]:h-full [&_svg]:max-w-full' : '[&_svg]:h-auto [&_svg]:w-40'}`
+                : stretch
+                  ? 'max-h-48 min-h-24 flex-1 [&_svg]:h-full [&_svg]:w-full' // capped so bars stay believable
+                  : '[&_svg]:h-auto [&_svg]:max-h-24 [&_svg]:w-full' // squat symbologies (EAN-8) balloon at full width
             }`}
-            dangerouslySetInnerHTML={{ __html: barcodeSvg }}
+            dangerouslySetInnerHTML={{ __html: plateSvg }}
           />
         ) : (
           <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
@@ -125,7 +134,8 @@ export function PassDetails({ card, onEdit, onDelete, onToggleFavorite }: PassDe
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 px-4 pb-4">
+      {/* mt-auto pins the actions to the bottom of the deck's stretched card; inert in block flow */}
+      <div className="mt-auto grid grid-cols-3 gap-2 px-4 pb-4">
         <button
           onClick={() => onToggleFavorite(card.id)}
           className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-muted py-2.5 text-sm font-semibold text-foreground/80 hover:text-foreground`}
