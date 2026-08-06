@@ -292,7 +292,8 @@ export function DeckView({
     const index = previous.indexOf(cardId)
     const front = frontIndex()
     if (index === front && front === previous.length - 1) {
-      animateP(Math.max(0, p.current - spacing)) // the back card can't go further back: rewind instead
+      // end of the conveyor: cycle — the swiped card dives under the pile and the card below surfaces
+      setOrder([cardId, ...previous.filter(id => id !== cardId)])
       return
     }
     const next = previous.filter(id => id !== cardId)
