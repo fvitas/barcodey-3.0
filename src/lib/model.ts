@@ -122,7 +122,7 @@ export const cardThemeGradients: Record<CardTheme, string> = {
   graphite: 'bg-gradient-to-br from-neutral-600 via-neutral-800 to-neutral-950',
 }
 
-export const viewModes = ['list', 'grid', 'deck'] as const
+export const viewModes = ['deck', 'list', 'grid'] as const
 
 export type ViewMode = (typeof viewModes)[number]
 export type SortMode = 'manual' | 'az' | 'za' | 'newest' | 'oldest'

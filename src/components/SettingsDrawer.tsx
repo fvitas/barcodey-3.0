@@ -149,7 +149,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Backup
             </span>
-            <div className="mb-6 grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={handleExport}
                 className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
@@ -164,7 +164,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               </button>
             </div>
             {importError && (
-              <p className="-mt-4 mb-6 text-center text-xs font-medium text-destructive">
+              <p className="mt-2 text-center text-xs font-medium text-destructive">
                 Not a valid Barcodey backup file
               </p>
             )}
@@ -176,7 +176,6 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               onChange={handleImportFile}
             />
 
-            <p className="text-center text-xs font-medium text-muted-foreground/80">Barcodey 3.0</p>
           </div>
         </Drawer.Content>
       </Drawer.Portal>
