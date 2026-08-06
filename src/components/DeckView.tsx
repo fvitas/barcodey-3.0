@@ -298,6 +298,9 @@ export function DeckView({
     const next = previous.filter(id => id !== cardId)
     next.push(cardId)
     if (index < front) p.current -= spacing // removing a passed card shifts everyone; keep the front where it is
+    // the swiped card re-enters from below the screen instead of sliding sideways into the stack
+    placed.current.delete(cardId)
+    arrivals.current.add(cardId)
     setOrder(next)
   }
 
@@ -587,9 +590,21 @@ export function DeckView({
       el.style.transform = `translateY(${startY}px) scale(${arrivals.current.has(id) ? 1 : conveyorScale(index, soft, geo)})`
       void el.offsetHeight
     })
+    const risers = [...arrivals.current]
     arrivals.current.clear()
     placed.current = new Set(order)
     layout(false)
+    // Blink coalesces the pre-place and slot writes into one recalc and skips the transition; WAAPI always runs
+    if (!reduceMotion) {
+      risers.forEach(id => {
+        const el = cardEls.current.get(id)
+        if (el === undefined) return
+        el.animate?.(
+          [{ transform: `translateY(${dims.height + 30}px) scale(1)` }, { transform: el.style.transform }],
+          { duration: 450, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+        )
+      })
+    }
     reportIndex()
   }, [orderKey, dims, expandedCardId, reduceMotion])
 
