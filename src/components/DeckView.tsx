@@ -614,6 +614,12 @@ export function DeckView({
   // place new elements before the animated pass: arrivals below the screen, everything else at its slot
   useLayoutEffect(() => {
     if (geo === null || dims === null) return
+    // opening a stacked card promotes it: the conveyor advances underneath (the deck is hidden
+    // while open) so the card closes into the front slot instead of back into the stack
+    if (expandedCardId !== null) {
+      const openIndex = order.indexOf(expandedCardId)
+      if (openIndex !== -1) p.current = spacing * openIndex
+    }
     p.current = Math.max(0, Math.min(maxScroll, p.current))
     const soft = softClamp(p.current, maxScroll)
     order.forEach((id, index) => {
