@@ -210,13 +210,17 @@ export function AddDocumentDrawer({ open, onClose, onAdd }: AddDocumentDrawerPro
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-5 pt-3 pb-8">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
+          <div className="px-5 pt-3">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Add document</Drawer.Title>
+          </div>
 
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
             <DocumentFields value={draft} onPatch={handlePatch} />
+          </div>
 
+          <div className="px-5 pt-4 pb-5">
             <button
               onClick={handleSubmit}
               disabled={draft.name.trim() === ''}
@@ -243,21 +247,27 @@ export function EditDocumentDrawer({ doc, onClose, onChange }: EditDocumentDrawe
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
           {doc && (
-            <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-5 pt-3 pb-8">
-              <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
-              <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Edit document</Drawer.Title>
+            <>
+              <div className="px-5 pt-3">
+                <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
+                <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Edit document</Drawer.Title>
+              </div>
 
-              <DocumentFields value={doc} onPatch={patch => onChange(doc.id, patch)} />
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
+                <DocumentFields value={doc} onPatch={patch => onChange(doc.id, patch)} />
+              </div>
 
-              <button
-                onClick={onClose}
-                className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
-              >
-                Done
-              </button>
-            </div>
+              <div className="px-5 pt-4 pb-5">
+                <button
+                  onClick={onClose}
+                  className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
+                >
+                  Done
+                </button>
+              </div>
+            </>
           )}
         </Drawer.Content>
       </Drawer.Portal>
