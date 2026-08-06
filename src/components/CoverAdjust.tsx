@@ -1,6 +1,9 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Slider } from '@/components/ui/slider'
 import type { CardCover } from '@/lib/model'
+
+// every cover frame (adjust preview, card and document faces) has the card aspect
+const frameAspect = 1.586
 
 type CoverImageProps = {
   cover: CardCover
@@ -8,9 +11,12 @@ type CoverImageProps = {
   imgRef?: React.Ref<HTMLImageElement>
 }
 
-// scale on a wrapper + %-translate on a centered cover-fit img: the stored transform
-// renders identically in any frame with the card aspect, no measurements needed
+// scale on a wrapper + %-translate on a centered contain-fit img: scale 1 shows the whole
+// photo whatever its orientation, and the stored transform renders identically in any frame
+// with the card aspect
 export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
+  const [tall, setTall] = useState(false)
+
   return (
     <div style={{ transform: `scale(${cover.scale})` }} className="absolute inset-0">
       <img
@@ -18,8 +24,11 @@ export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
         src={src}
         alt=""
         draggable={false}
+        onLoad={(event: React.SyntheticEvent<HTMLImageElement>) =>
+          setTall(event.currentTarget.naturalWidth < event.currentTarget.naturalHeight * frameAspect)
+        }
         style={{ transform: `translate(calc(-50% + ${cover.x * 100}%), calc(-50% + ${cover.y * 100}%))` }}
-        className="absolute top-1/2 left-1/2 min-h-full min-w-full max-w-none"
+        className={`absolute top-1/2 left-1/2 max-w-none ${tall ? 'h-full w-auto' : 'h-auto w-full'}`}
       />
     </div>
   )
