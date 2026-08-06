@@ -197,7 +197,8 @@ export function WallPass({
 
   return (
     <motion.div
-      layout
+      // full `layout` re-resolves the details' height-auto animation from 0 on re-sorts (unpin)
+      layout="position"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
