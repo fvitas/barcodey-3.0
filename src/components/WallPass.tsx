@@ -85,7 +85,7 @@ export function PassDetails({ card, onEdit, onDelete, onToggleFavorite }: PassDe
             className={`rounded-md bg-white px-3 py-2 ${
               squareFormats.has(card.format)
                 ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
-                : '[&_svg]:h-auto [&_svg]:w-full'
+                : '[&_svg]:h-auto [&_svg]:max-h-24 [&_svg]:w-full' // squat symbologies (EAN-8) balloon at full width
             }`}
             dangerouslySetInnerHTML={{ __html: barcodeSvg }}
           />

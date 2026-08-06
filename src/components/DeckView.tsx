@@ -624,7 +624,7 @@ export function DeckView({
   return (
     <div
       ref={stageRef}
-      className={`relative h-full rounded-t-2xl ${open ? 'overflow-y-auto' : 'overflow-hidden'}`}
+      className="relative h-full overflow-hidden rounded-t-2xl"
     >
       <AnimatePresence>
         {open && (
@@ -669,7 +669,13 @@ export function DeckView({
                   transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 34 }}
                   className="overflow-hidden"
                 >
-                  <PassDetails card={card} onEdit={onEdit} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
+                  {/* the face stays pinned; only the details scroll when they don't fit the stage */}
+                  <div
+                    style={geo === null || dims === null ? undefined : { maxHeight: dims.height - geo.cardH - topPad * 2 }}
+                    className="overflow-y-auto overscroll-contain"
+                  >
+                    <PassDetails card={card} onEdit={onEdit} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
