@@ -81,28 +81,6 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
         <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.06)_38%,transparent_39%)]" />
       )}
 
-      {/* punch holes on the fold divider, same as the wall pass */}
-      <AnimatePresence initial={false}>
-        {open && (
-          <>
-            <motion.span
-              key="notch-left"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-              exit={{ scale: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
-              className="absolute -bottom-3 -left-3 z-10 size-6 rounded-full bg-background"
-            />
-            <motion.span
-              key="notch-right"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-              exit={{ scale: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
-              className="absolute -right-3 -bottom-3 z-10 size-6 rounded-full bg-background"
-            />
-          </>
-        )}
-      </AnimatePresence>
-
       <div className="relative flex items-center gap-3">
         {!photoFace && (
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/25 text-base font-bold text-white">
