@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
+import { ExpiryReminderRow } from '@/components/ExpiryReminderRow'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -40,6 +41,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [theme, setTheme] = useState<CardTheme>('ocean')
   const [photos, setPhotos] = useState<CardPhotos>({})
   const [cover, setCover] = useState<CardCover | undefined>(undefined)
+  const [expiry, setExpiry] = useState<string | undefined>(undefined)
   const coverSrc = usePhotoSrc(cover !== undefined ? photos[cover.side] : undefined)
 
   const canSubmit = name.trim() !== '' && (mode === 'scan' ? scanResult !== null : value.trim() !== '')
@@ -53,6 +55,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setTheme('ocean')
     setPhotos({})
     setCover(undefined)
+    setExpiry(undefined)
   }
 
   function handlePhotosChange(next: CardPhotos) {
@@ -87,6 +90,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       folderId: null,
       photos,
       cover,
+      expiry,
     })
     reset()
     onClose()
@@ -257,7 +261,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                             : { side: selected as PhotoSide, scale: 1, x: 0, y: 0 },
                         )
                       }
-                      className={cover !== undefined ? 'mb-4' : 'mb-6'}
+                      className="mb-4"
                     >
                       <TabsList className="h-11! w-full">
                         {(['none', 'front', 'back'] as const).map(option => (
@@ -274,12 +278,29 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     </Tabs>
 
                     {cover !== undefined && coverSrc !== null && (
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <CoverAdjust src={coverSrc} cover={cover} onChange={setCover} />
                       </div>
                     )}
                   </>
                 )}
+
+                {/* last field before Save: the 95% of cards that never expire keep a short hot path */}
+                <label className="mb-4 block">
+                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                    Expiry date <span className="normal-case">(optional)</span>
+                  </span>
+                  <Input
+                    type="date"
+                    value={expiry ?? ''}
+                    className="h-11 px-4 text-sm font-semibold"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setExpiry(event.target.value === '' ? undefined : event.target.value)
+                    }
+                  />
+                </label>
+
+                <ExpiryReminderRow expiry={expiry} />
               </>
             )}
           </div>

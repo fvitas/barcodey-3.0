@@ -2,10 +2,12 @@ import { CalendarIcon, ChevronDownIcon, HashIcon, IdCardIcon, PencilIcon, Trash2
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { CoverImage } from '@/components/CoverAdjust'
+import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PhotoViewer } from '@/components/WallPass'
 import { renderBarcodeSvg } from '@/lib/barcode'
-import { formatAddedAt, formatExpiry, formatLabels, squareFormats, type Doc, type PhotoSide } from '@/lib/model'
+import { expiryLongLabel } from '@/lib/expiry'
+import { formatAddedAt, formatLabels, squareFormats, type Doc, type PhotoSide } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 
 export const docFaceGradient = 'bg-gradient-to-br from-slate-800 to-slate-950'
@@ -133,6 +135,7 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
           </div>
 
           <div className="flex shrink-0 items-center gap-2 pl-2">
+            <ExpiryPill expiry={doc.expiry} />
             <motion.span animate={{ rotate: active ? 180 : 0 }} className="text-white/70">
               <ChevronDownIcon className="size-5" />
             </motion.span>
@@ -193,7 +196,7 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
               {doc.expiry !== undefined && (
                 <p className="flex items-center gap-2.5">
                   <CalendarIcon className="size-4 text-muted-foreground/70" />
-                  Expires {formatExpiry(doc.expiry)}
+                  {expiryLongLabel(doc.expiry, new Date())}
                 </p>
               )}
               <p className="flex items-center gap-2.5">

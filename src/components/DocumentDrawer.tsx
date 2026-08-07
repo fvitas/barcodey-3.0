@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
+import { ExpiryReminderRow } from '@/components/ExpiryReminderRow'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -124,6 +125,8 @@ function DocumentFields({ value, onPatch }: DocumentFieldsProps) {
           }
         />
       </label>
+
+      <ExpiryReminderRow expiry={value.expiry} />
 
       <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
         Barcode <span className="normal-case">(optional)</span>

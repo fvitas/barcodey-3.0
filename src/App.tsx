@@ -1,9 +1,11 @@
 import { MotionConfig } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { AddDrawer } from '@/components/AddDrawer'
 import { AppNav } from '@/components/AppNav'
+import { useExpiryReminders } from '@/hooks/use-expiry-reminders'
 import type { Card } from '@/lib/model'
+import { onNotificationTap, type NotificationTap } from '@/lib/notifications'
 import { DocumentsScreen } from '@/screens/DocumentsScreen'
 import { FolderScreen } from '@/screens/FolderScreen'
 import { FoldersScreen } from '@/screens/FoldersScreen'
@@ -20,6 +22,25 @@ function AppShell() {
   const [restored, setRestored] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const handleTap = useRef<(tap: NotificationTap) => void>(() => {})
+
+  useExpiryReminders()
+
+  useEffect(() => {
+    handleTap.current = tap => {
+      if (tap.kind === 'card') {
+        // a deleted card leaves nothing expanded, which is just the wall
+        update({ expandedCardId: tap.id })
+        navigate('/')
+        return
+      }
+      // the documents screen applies the biometric gate itself when the lock is on
+      navigate('/folders/documents')
+    }
+  })
+
+  // the listener resolves after the continuity restore below, so a cold-start tap wins
+  useEffect(() => onNotificationTap(tap => handleTap.current(tap)), [])
 
   // continuity: reopen where the app was left, once, from the default entry only
   useEffect(() => {

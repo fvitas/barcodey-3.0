@@ -22,10 +22,14 @@ export const sampleCardPool: { name: string; value: string; format: BarcodeForma
   { name: 'Air Serbia Club', value: 'ASC-009912', format: 'pdf417' },
 ]
 
+// days from today; rolling past the end leaves the card undated, like most real cards
+const expiryOffsets = [-3, 0, 1, 3, 12, 28]
+
 export function createSampleCard(): Card {
   const sample = sampleCardPool[Math.floor(Math.random() * sampleCardPool.length)]
   const theme = cardThemes[Math.floor(Math.random() * cardThemes.length)]
   const daysAgo = Math.floor(Math.random() * 365)
+  const offset = expiryOffsets.at(Math.floor(Math.random() * (expiryOffsets.length + 6)))
 
   return {
     id: crypto.randomUUID(),
@@ -37,5 +41,6 @@ export function createSampleCard(): Card {
     addedAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10),
     folderId: null,
     photos: {},
+    expiry: offset === undefined ? undefined : new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10),
   }
 }

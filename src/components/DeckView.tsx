@@ -2,6 +2,7 @@ import { StarIcon } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CoverImage } from '@/components/CoverAdjust'
+import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PassDetails } from '@/components/WallPass'
 import { cardThemeGradients, formatLabels, type Card } from '@/lib/model'
@@ -88,6 +89,8 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
           </span>
         )}
         <p className="min-w-0 flex-1 truncate text-lg leading-tight font-extrabold text-white">{card.name}</p>
+        {/* only the top 66px of a stacked card shows, so the badge lives in this row, not a bottom corner */}
+        <ExpiryPill expiry={card.expiry} />
         {card.favorite && <StarIcon className="size-4.5 shrink-0 fill-amber-300 stroke-none" />}
       </div>
 

@@ -53,6 +53,7 @@ const cardSchema = z.object({
   folderId: z.string().nullable(),
   photos: cardPhotosSchema.default({}), // default keeps pre-photos wallets and backups valid
   cover: cardCoverSchema.optional(), // photo shown as the full card face in list/grid
+  expiry: z.string().optional(), // ISO date, e.g. a voucher's "use by"
 })
 
 const folderSchema = z.object({

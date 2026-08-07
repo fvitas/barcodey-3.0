@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
 import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
 import { viewModes, walletSchema, type Wallet } from '@/lib/model'
+import { requestNotificationPermission } from '@/lib/notifications'
 import { pressable } from '@/lib/utils'
 import { useDocumentsLock } from '@/state/documents-lock-context'
 import { useUiState } from '@/state/ui-state-context'
@@ -29,6 +30,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
   const [pendingImport, setPendingImport] = useState<Wallet | null>(null)
   const [importError, setImportError] = useState(false)
+  const [remindersDenied, setRemindersDenied] = useState(false)
 
   const lockAvailable = method !== null && method !== 'none'
 
@@ -39,6 +41,18 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     }
     // switching the lock off has to pass the lock first, or it protects nothing
     void authenticateForDocuments().then(ok => ok && update({ lockDocuments: false }))
+  }
+
+  function handleRemindersToggle(checked: boolean) {
+    if (!checked) {
+      setRemindersDenied(false)
+      update({ expiryReminders: false })
+      return
+    }
+    void requestNotificationPermission().then(granted => {
+      setRemindersDenied(!granted)
+      if (granted) update({ expiryReminders: true })
+    })
   }
 
   function handleExport() {
@@ -143,6 +157,25 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                 disabled={!lockAvailable}
                 onCheckedChange={handleLockToggle}
                 aria-label="Biometric lock"
+              />
+            </div>
+
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Reminders
+            </span>
+            <div className="mb-5 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
+              <div className="min-w-0 pr-3">
+                <p className="text-sm font-semibold text-foreground">Expiry reminders</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
+                  {remindersDenied
+                    ? 'Allow notifications in Settings to enable'
+                    : '30, 7 and 1 day before a card or document expires'}
+                </p>
+              </div>
+              <Switch
+                checked={state.expiryReminders}
+                onCheckedChange={handleRemindersToggle}
+                aria-label="Expiry reminders"
               />
             </div>
 

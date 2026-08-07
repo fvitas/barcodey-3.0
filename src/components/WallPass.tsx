@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CoverImage } from '@/components/CoverAdjust'
+import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { renderBarcodeSvg } from '@/lib/barcode'
+import { expiryLongLabel } from '@/lib/expiry'
 import {
   cardThemeGradients,
   formatAddedAt,
@@ -130,6 +132,12 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
       </AnimatePresence>
 
       <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
+        {card.expiry !== undefined && (
+          <p className="flex items-center gap-2.5">
+            <CalendarIcon className="size-4 text-muted-foreground/70" />
+            {expiryLongLabel(card.expiry, new Date())}
+          </p>
+        )}
         <p className="flex items-center gap-2.5">
           <CalendarIcon className="size-4 text-muted-foreground/70" />
           Added {formatAddedAt(card.addedAt)}
@@ -231,7 +239,10 @@ export function WallPass({
                 {card.name.charAt(0).toUpperCase()}
               </span>
             )}
-            {card.favorite && <StarIcon className="size-4 fill-amber-300 stroke-none" />}
+            <span className="flex items-center gap-1.5">
+              <ExpiryPill expiry={card.expiry} variant="disc" />
+              {card.favorite && <StarIcon className="size-4 fill-amber-300 stroke-none" />}
+            </span>
           </div>
 
           <div className="relative">
@@ -310,6 +321,7 @@ export function WallPass({
             </div>
 
             <div className="flex shrink-0 items-center gap-2 pl-2">
+              <ExpiryPill expiry={card.expiry} />
               {card.favorite && <StarIcon className="size-4.5 fill-amber-300 stroke-none" />}
               <motion.span animate={{ rotate: active ? 180 : 0 }} className="text-white/70">
                 <ChevronDownIcon className="size-5" />

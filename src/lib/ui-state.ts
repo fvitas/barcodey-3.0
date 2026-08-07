@@ -10,6 +10,8 @@ const uiStateSchema = z.object({
   appearance: z.enum(['light', 'dark', 'system']),
   lockDocuments: z.boolean().default(true), // default keeps pre-lock persisted state valid, secure by default
   deckIndex: z.number().int().nonnegative().default(0), // default keeps pre-deck persisted state valid
+  // notifications only — the expiry pill on the wall is driven by the dates alone
+  expiryReminders: z.boolean().default(false),
 })
 
 export type UiState = z.infer<typeof uiStateSchema>
@@ -22,6 +24,7 @@ export const defaultUiState: UiState = {
   appearance: 'system',
   lockDocuments: true,
   deckIndex: 0,
+  expiryReminders: false,
 }
 
 const uiStateKey = 'ui-state'
