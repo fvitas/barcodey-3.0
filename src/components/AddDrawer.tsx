@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
-import { ExpiryReminderRow } from '@/components/ExpiryReminderRow'
+import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -286,21 +286,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 )}
 
                 {/* last field before Save: the 95% of cards that never expire keep a short hot path */}
-                <label className="mb-4 block">
-                  <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-                    Expiry date <span className="normal-case">(optional)</span>
-                  </span>
-                  <Input
-                    type="date"
-                    value={expiry ?? ''}
-                    className="h-11 px-4 text-sm font-semibold"
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setExpiry(event.target.value === '' ? undefined : event.target.value)
-                    }
-                  />
-                </label>
-
-                <ExpiryReminderRow expiry={expiry} />
+                <ExpiryDateField value={expiry} onChange={setExpiry} />
               </>
             )}
           </div>

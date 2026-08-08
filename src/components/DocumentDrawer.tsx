@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
-import { ExpiryReminderRow } from '@/components/ExpiryReminderRow'
+import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -112,21 +112,7 @@ function DocumentFields({ value, onPatch }: DocumentFieldsProps) {
         />
       </label>
 
-      <label className="mb-4 block">
-        <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-          Expiry date <span className="normal-case">(optional)</span>
-        </span>
-        <Input
-          type="date"
-          value={value.expiry ?? ''}
-          className="h-11 px-4 text-sm font-semibold"
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-            onPatch({ expiry: event.target.value === '' ? undefined : event.target.value })
-          }
-        />
-      </label>
-
-      <ExpiryReminderRow expiry={value.expiry} />
+      <ExpiryDateField value={value.expiry} onChange={expiry => onPatch({ expiry })} />
 
       <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
         Barcode <span className="normal-case">(optional)</span>

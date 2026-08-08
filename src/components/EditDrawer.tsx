@@ -1,6 +1,6 @@
 import { Drawer } from 'vaul'
 import { CoverAdjust } from '@/components/CoverAdjust'
-import { ExpiryReminderRow } from '@/components/ExpiryReminderRow'
+import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -111,21 +111,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                 </>
               )}
 
-              <label className="mb-4 block">
-                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-                  Expiry date <span className="normal-case">(optional)</span>
-                </span>
-                <Input
-                  type="date"
-                  value={card.expiry ?? ''}
-                  className="h-11 px-4 text-sm font-semibold"
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    onChange(card.id, { expiry: event.target.value === '' ? undefined : event.target.value })
-                  }
-                />
-              </label>
-
-              <ExpiryReminderRow expiry={card.expiry} />
+              <ExpiryDateField value={card.expiry} onChange={expiry => onChange(card.id, { expiry })} />
 
               <div className="mb-6 rounded-xl bg-muted/60 px-4 py-3">
                 <p className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
