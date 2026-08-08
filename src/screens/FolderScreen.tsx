@@ -25,14 +25,16 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
+          <div className="px-5 pt-3">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-1 text-lg font-extrabold text-foreground">Add cards</Drawer.Title>
             <p className="mb-5 text-xs font-medium text-muted-foreground/80">
               A card lives in one folder — only unfiled cards are shown
             </p>
+          </div>
 
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8">
             <div className="flex flex-col gap-2">
               {unfiledCards.map(card => (
                 <button
@@ -48,7 +50,7 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
                     {card.name}
                   </span>
-                  <PlusIcon className="size-4.5 shrink-0 text-primary" />
+                  <PlusIcon className="mr-2 size-4.5 shrink-0 text-primary" />
                 </button>
               ))}
 
