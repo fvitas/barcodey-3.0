@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { AddDrawer } from '@/components/AddDrawer'
 import { AppNav } from '@/components/AppNav'
+import { warmBarcodeRenderer } from '@/hooks/use-barcode-svg'
 import { useExpiryReminders } from '@/hooks/use-expiry-reminders'
 import type { Card } from '@/lib/model'
 import { onNotificationTap, type NotificationTap } from '@/lib/notifications'
@@ -25,6 +26,11 @@ function AppShell() {
   const handleTap = useRef<(tap: NotificationTap) => void>(() => {})
 
   useExpiryReminders()
+
+  // fetch the split bwip-js chunk right after first paint, before any pass expands
+  useEffect(() => {
+    void warmBarcodeRenderer()
+  }, [])
 
   useEffect(() => {
     handleTap.current = tap => {

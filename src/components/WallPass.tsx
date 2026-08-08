@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
-import { renderBarcodeSvg } from '@/lib/barcode'
+import { useBarcodeSvg } from '@/hooks/use-barcode-svg'
 import { expiryLongLabel } from '@/lib/expiry'
 import {
   cardThemeGradients,
@@ -74,14 +74,14 @@ type PassDetailsProps = {
 // the unfolded half of a pass — shared by the wall (list/grid) and the deck so the views never drift
 export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleFavorite }: PassDetailsProps) {
   const square = squareFormats.has(card.format)
+  const svg = useBarcodeSvg(card.value, card.format)
   // stable object identity: react 19 re-sets innerHTML (remounting the svg) whenever
   // dangerouslySetInnerHTML receives a new object, even with an identical string
   const plateHtml = useMemo(() => {
-    const svg = renderBarcodeSvg(card.value, card.format)
-    if (svg === null) return null
+    if (svg === undefined || svg === null) return null
     // taller 1D bars scan better and the x-scale stays proportional, so non-uniform stretch is safe
     return { __html: stretch && !square ? svg.replace('<svg', '<svg preserveAspectRatio="none"') : svg }
-  }, [card.value, card.format, stretch, square])
+  }, [svg, stretch, square])
   const [viewerPath, setViewerPath] = useState<string | null>(null)
   const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
 
@@ -102,11 +102,11 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
             }`}
             dangerouslySetInnerHTML={plateHtml}
           />
-        ) : (
+        ) : svg === null ? (
           <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
             “{card.value}” is not a valid {formatLabels[card.format]} number
           </p>
-        )}
+        ) : null}
         <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-muted-foreground/80">
           {card.value}
         </p>

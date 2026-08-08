@@ -5,7 +5,7 @@ import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PhotoViewer } from '@/components/WallPass'
-import { renderBarcodeSvg } from '@/lib/barcode'
+import { useBarcodeSvg } from '@/hooks/use-barcode-svg'
 import { expiryLongLabel } from '@/lib/expiry'
 import { formatAddedAt, formatLabels, squareFormats, type Doc, type PhotoSide } from '@/lib/model'
 import { pressable } from '@/lib/utils'
@@ -56,13 +56,12 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
   const faceCover = doc.cover ?? (faceSide !== undefined ? { side: faceSide, scale: 1, x: 0, y: 0 } : undefined)
   const faceSrc = usePhotoSrc(faceSide !== undefined ? doc.photos[faceSide] : undefined)
   const photoFace = faceCover !== undefined && faceSrc !== null
+  // collapsed docs stay mounted in the list, so gate on active to skip their encodes
+  const barcode = active ? doc.barcode : undefined
+  const svg = useBarcodeSvg(barcode?.value, barcode?.format)
   // stable object identity: react 19 re-sets innerHTML (remounting the svg) whenever
   // dangerouslySetInnerHTML receives a new object, even with an identical string
-  const barcodeHtml = useMemo(() => {
-    if (!active || doc.barcode === undefined) return null
-    const svg = renderBarcodeSvg(doc.barcode.value, doc.barcode.format)
-    return svg === null ? null : { __html: svg }
-  }, [active, doc.barcode])
+  const barcodeHtml = useMemo(() => (svg === undefined || svg === null ? null : { __html: svg }), [svg])
 
   return (
     <motion.div
@@ -175,11 +174,11 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
                     }`}
                     dangerouslySetInnerHTML={barcodeHtml}
                   />
-                ) : (
+                ) : svg === null ? (
                   <p className="rounded-xl bg-destructive/10 px-4 py-3 text-center text-xs font-semibold text-destructive">
                     “{doc.barcode.value}” is not a valid {formatLabels[doc.barcode.format]} number
                   </p>
-                )}
+                ) : null}
                 <p className="text-center font-mono text-xs font-medium tracking-[0.25em] text-muted-foreground/80">
                   {doc.barcode.value}
                 </p>
