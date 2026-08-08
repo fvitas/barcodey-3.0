@@ -1,7 +1,8 @@
-import { FolderIcon, FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon } from 'lucide-react'
+import { FolderIcon, FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon, SettingsIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
+import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { Input } from '@/components/ui/input'
 import { cardThemeGradients, type Card } from '@/lib/model'
 import { pressable } from '@/lib/utils'
@@ -87,6 +88,7 @@ export function FoldersScreen() {
   const { cards, folders, documents, createFolder } = useWallet()
   const navigate = useNavigate()
   const [newFolderOpen, setNewFolderOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   function cardsIn(folderId: string): Card[] {
     return cards.filter(card => card.folderId === folderId)
@@ -99,13 +101,22 @@ export function FoldersScreen() {
           Barcodey<span className="text-primary"> · </span>Folders
         </h1>
 
-        <button
-          onClick={() => setNewFolderOpen(true)}
-          className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
-          aria-label="New folder"
-        >
-          <FolderPlusIcon className="size-5" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setNewFolderOpen(true)}
+            className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm`}
+            aria-label="New folder"
+          >
+            <FolderPlusIcon className="size-5" />
+          </button>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className={`${pressable} flex size-10 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm hover:text-foreground`}
+            aria-label="Settings"
+          >
+            <SettingsIcon className="size-5" />
+          </button>
+        </div>
       </header>
 
       <main className="grid grid-cols-2 gap-3 px-5 pb-32">
@@ -158,6 +169,8 @@ export function FoldersScreen() {
         onClose={() => setNewFolderOpen(false)}
         onCreate={name => createFolder(name)}
       />
+
+      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }
