@@ -1,4 +1,4 @@
-import { FolderIcon, GalleryVerticalEndIcon, PlusIcon } from 'lucide-react'
+import { FolderIcon, PlusIcon, WalletCardsIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useLocation, useNavigate } from 'react-router'
 import { pressable } from '@/lib/utils'
@@ -43,7 +43,7 @@ export function AppNav({ onAdd }: AppNavProps) {
 
   return (
     <nav className="fixed inset-x-0 bottom-4 z-30 mx-auto flex w-fit items-center rounded-full bg-card/95 px-2 py-1.5 shadow-xl shadow-slate-900/15 ring-1 ring-foreground/5 backdrop-blur">
-      <Tab label="Wallet" Icon={GalleryVerticalEndIcon} active={onWallet} onSelect={() => navigate('/')} />
+      <Tab label="Wallet" Icon={WalletCardsIcon} active={onWallet} onSelect={() => navigate('/')} />
 
       <button
         onClick={onAdd}
