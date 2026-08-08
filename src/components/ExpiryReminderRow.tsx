@@ -21,7 +21,7 @@ export function ExpiryReminderRow({ expiry }: { expiry: string | undefined }) {
   if (state.expiryReminders) {
     return (
       <p className="mb-4 text-xs font-medium text-muted-foreground/80">
-        You’ll be reminded 30, 7 and 1 day before.
+        You’ll be notified 30, 7 and 1 day before.
       </p>
     )
   }
@@ -29,14 +29,14 @@ export function ExpiryReminderRow({ expiry }: { expiry: string | undefined }) {
   return (
     <div className="mb-4 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
       <div className="min-w-0 pr-3">
-        <p className="text-sm font-semibold text-foreground">Remind me</p>
+        <p className="text-sm font-semibold text-foreground">Notify me</p>
         <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
           {denied
-            ? 'Allow notifications in Settings to get reminders'
+            ? 'Allow notifications in device Settings to enable'
             : 'A heads-up 30, 7 and 1 day before it expires'}
         </p>
       </div>
-      <Switch checked={false} onCheckedChange={handleToggle} aria-label="Remind me" />
+      <Switch checked={false} onCheckedChange={handleToggle} aria-label="Notify me" />
     </div>
   )
 }

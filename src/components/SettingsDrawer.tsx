@@ -161,21 +161,21 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             </div>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-              Reminders
+              Notifications
             </span>
             <div className="mb-5 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
               <div className="min-w-0 pr-3">
-                <p className="text-sm font-semibold text-foreground">Expiry reminders</p>
+                <p className="text-sm font-semibold text-foreground">Expiry notifications</p>
                 <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
                   {remindersDenied
-                    ? 'Allow notifications in Settings to enable'
+                    ? 'Allow notifications in device Settings to enable'
                     : '30, 7 and 1 day before a card or document expires'}
                 </p>
               </div>
               <Switch
                 checked={state.expiryReminders}
                 onCheckedChange={handleRemindersToggle}
-                aria-label="Expiry reminders"
+                aria-label="Expiry notifications"
               />
             </div>
 
