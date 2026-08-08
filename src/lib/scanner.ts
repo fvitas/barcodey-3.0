@@ -60,8 +60,8 @@ const mlkitFormats: Record<string, BarcodeFormat> = {
   PDF_417: 'pdf417',
 }
 
-// browser path: the add drawer feeds camera frames here
-export async function scanImage(image: ImageData): Promise<ScanResult | null> {
+// browser path: camera frames and picked image files both decode here
+export async function scanImage(image: ImageData | Blob): Promise<ScanResult | null> {
   const { readBarcodes } = await import('zxing-wasm/reader')
   const results = await readBarcodes(image, readerOptions)
   const first = results[0]

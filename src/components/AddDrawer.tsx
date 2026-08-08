@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
+import { ScanImagePicker } from '@/components/ScanImagePicker'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
@@ -33,7 +34,7 @@ type AddDrawerProps = {
 
 export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const navigate = useNavigate()
-  const [mode, setMode] = useState<'scan' | 'manual'>('scan')
+  const [mode, setMode] = useState<'scan' | 'image' | 'manual'>('scan')
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [name, setName] = useState('')
   const [value, setValue] = useState('')
@@ -47,7 +48,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const coverPath = cover !== undefined ? photos[cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
 
-  const canSubmit = name.trim() !== '' && (mode === 'scan' ? scanResult !== null : value.trim() !== '')
+  const canSubmit = name.trim() !== '' && (mode === 'manual' ? value.trim() !== '' : scanResult !== null)
 
   function reset() {
     setMode('scan')
@@ -90,8 +91,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     onAdd({
       id: crypto.randomUUID(),
       name: name.trim(),
-      value: mode === 'scan' && scanResult !== null ? scanResult.value : value.trim(),
-      format: mode === 'scan' && scanResult !== null ? scanResult.format : format,
+      value: mode !== 'manual' && scanResult !== null ? scanResult.value : value.trim(),
+      format: mode !== 'manual' && scanResult !== null ? scanResult.format : format,
       theme,
       favorite: false,
       addedAt: new Date().toISOString().slice(0, 10),
@@ -114,10 +115,13 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-4 text-lg font-extrabold text-foreground">Add card</Drawer.Title>
 
-            <Tabs value={mode} onValueChange={value => setMode(value as 'scan' | 'manual')} className="mb-5">
+            <Tabs value={mode} onValueChange={value => setMode(value as 'scan' | 'image' | 'manual')} className="mb-5">
               <TabsList className="h-11! w-full">
                 <TabsTrigger value="scan" className="font-semibold">
                   Scan
+                </TabsTrigger>
+                <TabsTrigger value="image" className="font-semibold">
+                  Image
                 </TabsTrigger>
                 <TabsTrigger value="manual" className="font-semibold">
                   Manual
@@ -149,7 +153,16 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
               </div>
             )}
 
-            {mode === 'scan' && scanResult !== null && (
+            {mode === 'image' && scanResult === null && (
+              <div className="mb-5">
+                <ScanImagePicker onDetected={setScanResult} />
+                <p className="mt-3 text-center text-xs font-medium text-muted-foreground/80">
+                  Pick a screenshot or photo with a barcode
+                </p>
+              </div>
+            )}
+
+            {mode !== 'manual' && scanResult !== null && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}

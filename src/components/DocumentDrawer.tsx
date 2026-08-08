@@ -5,6 +5,7 @@ import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
+import { ScanImagePicker } from '@/components/ScanImagePicker'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
@@ -160,13 +161,16 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
           </button>
         </div>
       ) : (
-        <button
-          onClick={handleScan}
-          className={`${pressable} mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! py-3 text-sm font-semibold text-muted-foreground hover:text-foreground`}
-        >
-          <CameraIcon className="size-4.5" />
-          Scan barcode
-        </button>
+        <div className="mb-6 grid grid-cols-2 gap-2">
+          <button
+            onClick={handleScan}
+            className={`${pressable} flex items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! py-3 text-sm font-semibold text-muted-foreground hover:text-foreground`}
+          >
+            <CameraIcon className="size-4.5" />
+            Scan barcode
+          </button>
+          <ScanImagePicker compact onDetected={result => onPatch({ barcode: result })} />
+        </div>
       )}
     </>
   )
