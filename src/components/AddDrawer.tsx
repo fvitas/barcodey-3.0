@@ -9,7 +9,7 @@ import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { pressable } from '@/lib/utils'
+import { capitalizeFirst, pressable } from '@/lib/utils'
 import {
   barcodeFormats,
   cardThemeGradients,
@@ -227,8 +227,9 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                   <Input
                     value={name}
                     placeholder="e.g. Lidl Plus"
+                    autoCapitalize="sentences"
                     className="h-11 px-4 text-sm font-semibold"
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(capitalizeFirst(event.target.value))}
                   />
                 </label>
 

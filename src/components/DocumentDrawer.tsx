@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanWithNativeScanner } from '@/lib/scanner'
-import { pressable } from '@/lib/utils'
+import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type DocDraft = Pick<Doc, 'name' | 'photos' | 'cover' | 'number' | 'expiry' | 'barcode'>
 
@@ -57,8 +57,9 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
         <Input
           value={value.name}
           placeholder="e.g. Driving licence"
+          autoCapitalize="sentences"
           className="h-11 px-4 text-sm font-semibold"
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => onPatch({ name: event.target.value })}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => onPatch({ name: capitalizeFirst(event.target.value) })}
         />
       </label>
 

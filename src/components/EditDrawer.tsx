@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cardThemeGradients, cardThemes, formatLabels, type Card, type PhotoSide } from '@/lib/model'
 import { bakePhotoRotations } from '@/lib/photos'
-import { pressable } from '@/lib/utils'
+import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type EditDrawerProps = {
   card: Card | null
@@ -56,9 +56,10 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                 </span>
                 <Input
                   value={card.name}
+                  autoCapitalize="sentences"
                   className="h-11 px-4 text-sm font-semibold"
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    onChange(card.id, { name: event.target.value })
+                    onChange(card.id, { name: capitalizeFirst(event.target.value) })
                   }
                 />
               </label>
