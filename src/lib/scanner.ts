@@ -1,15 +1,17 @@
 import { Capacitor } from '@capacitor/core'
+import type { ReaderOptions } from 'zxing-wasm/reader'
 import type { BarcodeFormat } from '@/lib/model'
 
 export type ScanResult = { value: string; format: BarcodeFormat }
 
 export const hasNativeScanner = Capacitor.isNativePlatform()
 
+// zxing-wasm v3 format names have no hyphens ('EAN13', not v2's 'EAN-13')
 const zxingFormats: Record<string, BarcodeFormat> = {
-  'EAN-13': 'ean13',
-  'EAN-8': 'ean8',
-  'UPC-A': 'upca',
-  'UPC-E': 'upce',
+  EAN13: 'ean13',
+  EAN8: 'ean8',
+  UPCA: 'upca',
+  UPCE: 'upce',
   Code128: 'code128',
   Code39: 'code39',
   Code93: 'code93',
@@ -19,6 +21,27 @@ const zxingFormats: Record<string, BarcodeFormat> = {
   Aztec: 'aztec',
   DataMatrix: 'datamatrix',
   PDF417: 'pdf417',
+}
+
+const readerOptions: ReaderOptions = {
+  // only the formats the app supports — an unrestricted search wastes most of each frame's budget
+  formats: [
+    'EAN13',
+    'EAN8',
+    'UPCA',
+    'UPCE',
+    'Code128',
+    'Code39',
+    'Code93',
+    'Codabar',
+    'ITF',
+    'QRCode',
+    'Aztec',
+    'DataMatrix',
+    'PDF417',
+  ],
+  tryHarder: true,
+  maxNumberOfSymbols: 1,
 }
 
 const mlkitFormats: Record<string, BarcodeFormat> = {
@@ -40,7 +63,7 @@ const mlkitFormats: Record<string, BarcodeFormat> = {
 // browser path: the add drawer feeds camera frames here
 export async function scanImage(image: ImageData): Promise<ScanResult | null> {
   const { readBarcodes } = await import('zxing-wasm/reader')
-  const results = await readBarcodes(image, { tryHarder: true, maxNumberOfSymbols: 1 })
+  const results = await readBarcodes(image, readerOptions)
   const first = results[0]
   if (!first || !first.isValid) return null
   const format = zxingFormats[first.format]

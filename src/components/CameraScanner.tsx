@@ -27,13 +27,29 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
     let busy = false
 
     async function captureFrame(video: HTMLVideoElement, context: CanvasRenderingContext2D) {
-      if (busy || cancelled || video.videoWidth === 0) return
+      if (busy || cancelled || video.videoWidth === 0 || video.clientHeight === 0) return
       busy = true
       try {
-        context.canvas.width = video.videoWidth
-        context.canvas.height = video.videoHeight
-        context.drawImage(video, 0, 0)
-        const result = await scanImage(context.getImageData(0, 0, video.videoWidth, video.videoHeight))
+        // decode only what the object-cover preview shows, capped in size — the full sensor
+        // frame includes content the user isn't aiming at and made each wasm pass slow
+        const viewAspect = video.clientWidth / video.clientHeight
+        const cropWidth = Math.min(video.videoWidth, video.videoHeight * viewAspect)
+        const cropHeight = Math.min(video.videoHeight, video.videoWidth / viewAspect)
+        const scale = Math.min(1, 1_280 / cropWidth)
+        context.canvas.width = Math.round(cropWidth * scale)
+        context.canvas.height = Math.round(cropHeight * scale)
+        context.drawImage(
+          video,
+          (video.videoWidth - cropWidth) / 2,
+          (video.videoHeight - cropHeight) / 2,
+          cropWidth,
+          cropHeight,
+          0,
+          0,
+          context.canvas.width,
+          context.canvas.height,
+        )
+        const result = await scanImage(context.getImageData(0, 0, context.canvas.width, context.canvas.height))
         if (result !== null && !cancelled) {
           window.clearInterval(timer)
           onDetectedRef.current(result)
@@ -45,8 +61,10 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
 
     async function start() {
       try {
+        // ask for 1080p: mobile browsers default to ~640×480, which both looks blurry
+        // and leaves too few pixels per bar for the decoder
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: facing },
+          video: { facingMode: facing, width: { ideal: 1_920 }, height: { ideal: 1_080 } },
           audio: false,
         })
       } catch {
@@ -64,6 +82,13 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
       video.srcObject = stream
       await video.play().catch(() => {})
 
+      // continuous autofocus where the browser exposes it (Android Chrome); iOS does it on its own
+      const focusConstraint: MediaTrackConstraintSet & { focusMode?: string } = { focusMode: 'continuous' }
+      await stream
+        .getVideoTracks()[0]
+        ?.applyConstraints({ advanced: [focusConstraint] })
+        .catch(() => {})
+
       // flip only makes sense with a second camera (enumerateDevices needs the granted permission)
       const devices = await navigator.mediaDevices.enumerateDevices().catch(() => [])
       const cameras = devices.filter(device => device.kind === 'videoinput')
@@ -74,7 +99,7 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
       if (context === null) return
       timer = window.setInterval(() => {
         void captureFrame(video, context)
-      }, 350)
+      }, 200)
     }
 
     void start()
