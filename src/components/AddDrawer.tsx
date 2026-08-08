@@ -22,7 +22,7 @@ import {
   type CardTheme,
   type PhotoSide,
 } from '@/lib/model'
-import { deleteCardPhotos } from '@/lib/photos'
+import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
 
 type AddDrawerProps = {
@@ -42,7 +42,10 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [photos, setPhotos] = useState<CardPhotos>({})
   const [cover, setCover] = useState<CardCover | undefined>(undefined)
   const [expiry, setExpiry] = useState<string | undefined>(undefined)
-  const coverSrc = usePhotoSrc(cover !== undefined ? photos[cover.side] : undefined)
+  // pending quarter turns keyed by photo path — previewed in the adjuster, baked on save
+  const [rotations, setRotations] = useState<Record<string, number>>({})
+  const coverPath = cover !== undefined ? photos[cover.side] : undefined
+  const coverSrc = usePhotoSrc(coverPath)
 
   const canSubmit = name.trim() !== '' && (mode === 'scan' ? scanResult !== null : value.trim() !== '')
 
@@ -56,6 +59,11 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setPhotos({})
     setCover(undefined)
     setExpiry(undefined)
+    setRotations({})
+  }
+
+  function handleRotate(path: string) {
+    setRotations(current => ({ ...current, [path]: ((current[path] ?? 0) + 1) % 4 }))
   }
 
   function handlePhotosChange(next: CardPhotos) {
@@ -77,7 +85,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       .catch(() => {})
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit) return
     onAdd({
       id: crypto.randomUUID(),
@@ -88,7 +96,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       favorite: false,
       addedAt: new Date().toISOString().slice(0, 10),
       folderId: null,
-      photos,
+      photos: await bakePhotoRotations(photos, rotations),
       cover,
       expiry,
     })
@@ -277,9 +285,15 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                       </TabsList>
                     </Tabs>
 
-                    {cover !== undefined && coverSrc !== null && (
+                    {cover !== undefined && coverSrc !== null && coverPath !== undefined && (
                       <div className="mb-4">
-                        <CoverAdjust src={coverSrc} cover={cover} onChange={setCover} />
+                        <CoverAdjust
+                          src={coverSrc}
+                          cover={cover}
+                          rotation={rotations[coverPath] ?? 0}
+                          onChange={setCover}
+                          onRotate={() => handleRotate(coverPath)}
+                        />
                       </div>
                     )}
                   </>
@@ -293,7 +307,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
 
           <div className="px-5 pt-4 pb-5">
             <button
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               disabled={!canSubmit}
               className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >

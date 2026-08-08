@@ -1,6 +1,9 @@
-import { useRef, useState } from 'react'
+import { RotateCwIcon } from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Slider } from '@/components/ui/slider'
 import type { CardCover } from '@/lib/model'
+import { rotateToJpegDataUrl } from '@/lib/photos'
+import { pressable } from '@/lib/utils'
 
 // every cover frame (adjust preview, card and document faces) has the card aspect
 const frameAspect = 1.586
@@ -15,18 +18,33 @@ type CoverImageProps = {
 // photo whatever its orientation, and the stored transform renders identically in any frame
 // with the card aspect
 export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
+  const localRef = useRef<HTMLImageElement | null>(null)
   const [tall, setTall] = useState(false)
+
+  function attachRef(node: HTMLImageElement | null) {
+    localRef.current = node
+    if (typeof imgRef === 'function') imgRef(node)
+    else if (imgRef !== undefined && imgRef !== null) imgRef.current = node
+  }
+
+  function measure(img: HTMLImageElement) {
+    if (img.naturalWidth > 0) setTall(img.naturalWidth < img.naturalHeight * frameAspect)
+  }
+
+  // measure before paint when the image is already decoded (rotate pre-decodes its data URL) —
+  // waiting for onLoad painted one frame of the new image with the previous fit
+  useLayoutEffect(() => {
+    if (localRef.current !== null) measure(localRef.current)
+  }, [src])
 
   return (
     <div style={{ transform: `scale(${cover.scale})` }} className="absolute inset-0">
       <img
-        ref={imgRef}
+        ref={attachRef}
         src={src}
         alt=""
         draggable={false}
-        onLoad={(event: React.SyntheticEvent<HTMLImageElement>) =>
-          setTall(event.currentTarget.naturalWidth < event.currentTarget.naturalHeight * frameAspect)
-        }
+        onLoad={(event: React.SyntheticEvent<HTMLImageElement>) => measure(event.currentTarget)}
         style={{ transform: `translate(calc(-50% + ${cover.x * 100}%), calc(-50% + ${cover.y * 100}%))` }}
         className={`absolute top-1/2 left-1/2 max-w-none ${tall ? 'h-full w-auto' : 'h-auto w-full'}`}
       />
@@ -37,13 +55,33 @@ export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
 type CoverAdjustProps = {
   src: string
   cover: CardCover
+  rotation: number
   onChange: (cover: CardCover) => void
+  onRotate: () => void
 }
 
-export function CoverAdjust({ src, cover, onChange }: CoverAdjustProps) {
+export function CoverAdjust({ src, cover, rotation, onChange, onRotate }: CoverAdjustProps) {
   const frameRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const drag = useRef<{ pointerId: number; lastX: number; lastY: number } | null>(null)
+  const [rotatedSrc, setRotatedSrc] = useState<string | null>(null)
+  const turns = rotation % 4
+
+  // rotate the pixels, not the CSS: the preview img IS the rotated image, so the
+  // drag math and clamping below stay orientation-blind
+  useEffect(() => {
+    if (turns === 0) {
+      setRotatedSrc(null)
+      return
+    }
+    let cancelled = false
+    void rotateToJpegDataUrl(src, turns).then(rotated => {
+      if (!cancelled) setRotatedSrc(rotated)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [src, turns])
 
   // keep the photo covering the frame — offsets are fractions of the displayed image size
   function clamped(next: CardCover): CardCover {
@@ -86,6 +124,20 @@ export function CoverAdjust({ src, cover, onChange }: CoverAdjustProps) {
     onChange(clamped({ ...cover, scale: value[0] }))
   }
 
+  // rotate the image BEFORE touching any state: src swap, rotation and framing reset then
+  // land in one batched render — resetting first showed an unzoom, then the turn, as two steps
+  async function handleRotate() {
+    const next = (turns + 1) % 4
+    const rotated = next === 0 ? src : await rotateToJpegDataUrl(src, next)
+    // pre-decode so the swap paints instantly and CoverImage can measure the fit before paint
+    const preload = new Image()
+    preload.src = rotated
+    await preload.decode().catch(() => {})
+    setRotatedSrc(next === 0 ? null : rotated)
+    onRotate()
+    onChange({ ...cover, scale: 1, x: 0, y: 0 })
+  }
+
   return (
     <div>
       <div
@@ -96,7 +148,15 @@ export function CoverAdjust({ src, cover, onChange }: CoverAdjustProps) {
         onPointerCancel={handlePointerEnd}
         className="relative aspect-[1.586] cursor-grab touch-none overflow-hidden rounded-2xl bg-muted active:cursor-grabbing"
       >
-        <CoverImage cover={cover} src={src} imgRef={imgRef} />
+        <CoverImage cover={cover} src={turns === 0 ? src : (rotatedSrc ?? src)} imgRef={imgRef} />
+        <button
+          aria-label="Rotate photo"
+          onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => event.stopPropagation()}
+          onClick={() => void handleRotate()}
+          className={`${pressable} absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full bg-black/40 text-white`}
+        >
+          <RotateCwIcon className="size-4" />
+        </button>
       </div>
       <div className="mt-2.5 flex items-center gap-3">
         <span className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">Zoom</span>

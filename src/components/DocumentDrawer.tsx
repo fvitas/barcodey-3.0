@@ -8,7 +8,7 @@ import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
-import { deleteCardPhotos } from '@/lib/photos'
+import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanWithNativeScanner } from '@/lib/scanner'
 import { pressable } from '@/lib/utils'
 
@@ -18,16 +18,19 @@ const emptyDraft: DocDraft = { name: '', photos: {} }
 
 type DocumentFieldsProps = {
   value: DocDraft
+  rotations: Record<string, number>
   onPatch: (patch: Partial<DocDraft>) => void
+  onRotate: (path: string) => void
 }
 
-function DocumentFields({ value, onPatch }: DocumentFieldsProps) {
+function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsProps) {
   const [scanning, setScanning] = useState(false)
   const photoSides = (['front', 'back'] as const).filter(side => value.photos[side] !== undefined)
   // the pass face defaults to the first photo; an explicit cover picks side + framing
   const faceSide = value.cover?.side ?? photoSides[0]
   const faceCover = value.cover ?? (faceSide !== undefined ? { side: faceSide, scale: 1, x: 0, y: 0 } : undefined)
-  const faceSrc = usePhotoSrc(faceSide !== undefined ? value.photos[faceSide] : undefined)
+  const facePath = faceSide !== undefined ? value.photos[faceSide] : undefined
+  const faceSrc = usePhotoSrc(facePath)
 
   function handlePhotosChange(photos: Doc['photos']) {
     // removing the photo used as cover falls back to the automatic face
@@ -90,9 +93,15 @@ function DocumentFields({ value, onPatch }: DocumentFieldsProps) {
             </TabsList>
           </Tabs>
 
-          {faceCover !== undefined && faceSrc !== null && (
+          {faceCover !== undefined && faceSrc !== null && facePath !== undefined && (
             <div className="mb-4">
-              <CoverAdjust src={faceSrc} cover={faceCover} onChange={cover => onPatch({ cover })} />
+              <CoverAdjust
+                src={faceSrc}
+                cover={faceCover}
+                rotation={rotations[facePath] ?? 0}
+                onChange={cover => onPatch({ cover })}
+                onRotate={() => onRotate(facePath)}
+              />
             </div>
           )}
         </>
@@ -170,27 +179,36 @@ type AddDocumentDrawerProps = {
 
 export function AddDocumentDrawer({ open, onClose, onAdd }: AddDocumentDrawerProps) {
   const [draft, setDraft] = useState<DocDraft>(emptyDraft)
+  // pending quarter turns keyed by photo path — previewed in the adjuster, baked on save
+  const [rotations, setRotations] = useState<Record<string, number>>({})
 
   function handlePatch(patch: Partial<DocDraft>) {
     setDraft(current => ({ ...current, ...patch }))
+  }
+
+  function handleRotate(path: string) {
+    setRotations(current => ({ ...current, [path]: ((current[path] ?? 0) + 1) % 4 }))
   }
 
   function handleClose() {
     // dismissed without saving — the picked photos would leak as orphan files
     void deleteCardPhotos(draft.photos)
     setDraft(emptyDraft)
+    setRotations({})
     onClose()
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (draft.name.trim() === '') return
     onAdd({
       id: crypto.randomUUID(),
       ...draft,
+      photos: await bakePhotoRotations(draft.photos, rotations),
       name: draft.name.trim(),
       addedAt: new Date().toISOString().slice(0, 10),
     })
     setDraft(emptyDraft)
+    setRotations({})
     onClose()
   }
 
@@ -206,12 +224,12 @@ export function AddDocumentDrawer({ open, onClose, onAdd }: AddDocumentDrawerPro
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
-            <DocumentFields value={draft} onPatch={handlePatch} />
+            <DocumentFields value={draft} rotations={rotations} onPatch={handlePatch} onRotate={handleRotate} />
           </div>
 
           <div className="px-5 pt-4 pb-5">
             <button
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               disabled={draft.name.trim() === ''}
               className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
@@ -231,8 +249,27 @@ type EditDocumentDrawerProps = {
 }
 
 export function EditDocumentDrawer({ doc, onClose, onChange }: EditDocumentDrawerProps) {
+  // pending quarter turns keyed by photo path — the one deferred edit: previewed live, baked on Done/close
+  const [rotations, setRotations] = useState<Record<string, number>>({})
+
+  function handleRotate(path: string) {
+    setRotations(current => ({ ...current, [path]: ((current[path] ?? 0) + 1) % 4 }))
+  }
+
+  function handleClose() {
+    if (doc !== null && Object.keys(rotations).length > 0) {
+      const { id, photos } = doc
+      const pending = rotations
+      void bakePhotoRotations(photos, pending).then(baked => {
+        if (baked !== photos) onChange(id, { photos: baked })
+      })
+    }
+    setRotations({})
+    onClose()
+  }
+
   return (
-    <Drawer.Root open={doc !== null} onOpenChange={open => !open && onClose()}>
+    <Drawer.Root open={doc !== null} onOpenChange={open => !open && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
@@ -245,12 +282,17 @@ export function EditDocumentDrawer({ doc, onClose, onChange }: EditDocumentDrawe
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
-                <DocumentFields value={doc} onPatch={patch => onChange(doc.id, patch)} />
+                <DocumentFields
+                  value={doc}
+                  rotations={rotations}
+                  onPatch={patch => onChange(doc.id, patch)}
+                  onRotate={handleRotate}
+                />
               </div>
 
               <div className="px-5 pt-4 pb-5">
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
                 >
                   Done

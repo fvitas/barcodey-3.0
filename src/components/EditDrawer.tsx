@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
@@ -5,6 +6,7 @@ import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cardThemeGradients, cardThemes, formatLabels, type Card, type PhotoSide } from '@/lib/model'
+import { bakePhotoRotations } from '@/lib/photos'
 import { pressable } from '@/lib/utils'
 
 type EditDrawerProps = {
@@ -16,9 +18,29 @@ type EditDrawerProps = {
 const coverOptions = ['none', 'front', 'back'] as const
 
 export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
-  const coverSrc = usePhotoSrc(card?.cover !== undefined ? card.photos[card.cover.side] : undefined)
+  // pending quarter turns keyed by photo path — the one deferred edit: previewed live, baked on Done/close
+  const [rotations, setRotations] = useState<Record<string, number>>({})
+  const coverPath = card !== null && card.cover !== undefined ? card.photos[card.cover.side] : undefined
+  const coverSrc = usePhotoSrc(coverPath)
+
+  function handleRotate(path: string) {
+    setRotations(current => ({ ...current, [path]: ((current[path] ?? 0) + 1) % 4 }))
+  }
+
+  function handleClose() {
+    if (card !== null && Object.keys(rotations).length > 0) {
+      const { id, photos } = card
+      const pending = rotations
+      void bakePhotoRotations(photos, pending).then(baked => {
+        if (baked !== photos) onChange(id, { photos: baked })
+      })
+    }
+    setRotations({})
+    onClose()
+  }
+
   return (
-    <Drawer.Root open={card !== null} onOpenChange={open => !open && onClose()}>
+    <Drawer.Root open={card !== null} onOpenChange={open => !open && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
@@ -99,12 +121,14 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                     </TabsList>
                   </Tabs>
 
-                  {card.cover !== undefined && coverSrc !== null && (
+                  {card.cover !== undefined && coverSrc !== null && coverPath !== undefined && (
                     <div className="mb-5">
                       <CoverAdjust
                         src={coverSrc}
                         cover={card.cover}
+                        rotation={rotations[coverPath] ?? 0}
                         onChange={cover => onChange(card.id, { cover })}
+                        onRotate={() => handleRotate(coverPath)}
                       />
                     </div>
                   )}
@@ -123,7 +147,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
               </div>
 
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
               >
                 Done
