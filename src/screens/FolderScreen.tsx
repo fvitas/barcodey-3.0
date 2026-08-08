@@ -56,7 +56,7 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
 
               {unfiledCards.length === 0 && (
                 <p className="py-6 text-center text-sm font-medium text-muted-foreground">
-                  Every card is already in a folder
+                  No more cards to add
                 </p>
               )}
             </div>
