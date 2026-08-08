@@ -76,12 +76,25 @@ export async function bakePhotoRotations(
   return changed ? baked : photos
 }
 
+// native-only: srcs there are tiny capacitor:// URI strings, and paths are immutable
+// (rotation writes a new file) so entries can't go stale; web base64 data URLs are
+// megabytes each and not worth retaining
+const srcCache = new Map<string, string>()
+
+export function cachedPhotoSrc(path: string): string | undefined {
+  return srcCache.get(path)
+}
+
 export async function loadPhotoSrc(path: string): Promise<string | null> {
+  const cached = srcCache.get(path)
+  if (cached !== undefined) return cached
   try {
     if (Capacitor.isNativePlatform()) {
       // serve the file directly instead of piping base64 over the bridge
       const { uri } = await Filesystem.getUri({ path, directory: photosDirectory })
-      return Capacitor.convertFileSrc(uri)
+      const src = Capacitor.convertFileSrc(uri)
+      srcCache.set(path, src)
+      return src
     }
     const result = await Filesystem.readFile({ path, directory: photosDirectory })
     return `data:image/jpeg;base64,${result.data as string}`
@@ -91,6 +104,7 @@ export async function loadPhotoSrc(path: string): Promise<string | null> {
 }
 
 export async function deletePhoto(path: string): Promise<void> {
+  srcCache.delete(path)
   await Filesystem.deleteFile({ path, directory: photosDirectory }).catch(() => {})
 }
 

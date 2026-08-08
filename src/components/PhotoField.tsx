@@ -1,14 +1,16 @@
 import { CameraIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CardPhotos, PhotoSide } from '@/lib/model'
-import { deletePhoto, loadPhotoSrc, savePhoto } from '@/lib/photos'
+import { cachedPhotoSrc, deletePhoto, loadPhotoSrc, savePhoto } from '@/lib/photos'
 import { pressable } from '@/lib/utils'
 
 export function usePhotoSrc(path: string | undefined): string | null {
+  // sync cache hit skips the placeholder flash on remounts
+  const cached = path !== undefined ? cachedPhotoSrc(path) : undefined
   const [loaded, setLoaded] = useState<{ path: string; src: string } | null>(null)
 
   useEffect(() => {
-    if (path === undefined) return
+    if (path === undefined || cachedPhotoSrc(path) !== undefined) return
     let cancelled = false
     void loadPhotoSrc(path).then(src => {
       if (!cancelled && src !== null) setLoaded({ path, src })
@@ -18,6 +20,7 @@ export function usePhotoSrc(path: string | undefined): string | null {
     }
   }, [path])
 
+  if (cached !== undefined) return cached
   // deriving from the loaded path also keeps a stale photo from flashing while the next one loads
   return loaded !== null && loaded.path === path ? loaded.src : null
 }
