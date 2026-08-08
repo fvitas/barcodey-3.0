@@ -21,7 +21,7 @@ import {
   CameraIcon,
   CheckIcon,
   DicesIcon,
-  GalleryHorizontalEndIcon,
+  GalleryVerticalEndIcon,
   GripVerticalIcon,
   LayoutGridIcon,
   Rows3Icon,
@@ -60,7 +60,7 @@ const sortModes: { id: SortMode; label: string; Icon: typeof GripVerticalIcon }[
 const viewOptions: { id: ViewMode; label: string; Icon: typeof Rows3Icon }[] = [
   { id: 'list', label: 'List', Icon: Rows3Icon },
   { id: 'grid', label: 'Grid', Icon: LayoutGridIcon },
-  { id: 'deck', label: 'Deck', Icon: GalleryHorizontalEndIcon },
+  { id: 'deck', label: 'Deck', Icon: GalleryVerticalEndIcon },
 ]
 
 type SortablePassProps = {
