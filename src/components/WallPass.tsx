@@ -34,7 +34,7 @@ function PassPhoto({ side, path, onOpen }: PassPhotoProps) {
       className="relative aspect-[1.6] w-[calc(50%-0.25rem)] overflow-hidden rounded-lg"
     >
       {src !== null ? (
-        <img src={src} alt={`${side} photo`} className="size-full object-cover" />
+        <img src={src} alt="" className="size-full object-cover" />
       ) : (
         <div className="size-full bg-muted" />
       )}
@@ -57,7 +57,7 @@ export function PhotoViewer({ path, onClose }: { path: string; onClose: () => vo
       aria-label="Close photo"
       className="fixed inset-0 z-70 flex items-center justify-center bg-black/90 p-4"
     >
-      {src !== null && <img src={src} alt="Card photo" className="max-h-full max-w-full rounded-xl" />}
+      {src !== null && <img src={src} alt="" className="max-h-full max-w-full rounded-xl" />}
     </motion.button>,
     document.body,
   )

@@ -37,7 +37,9 @@ export async function savePhoto(file: File): Promise<string> {
 
 // clockwise quarter turns — one code path for the adjuster preview and the baked file
 export async function rotateToJpegDataUrl(src: string, quarters: number): Promise<string> {
-  const blob = await (await fetch(src)).blob()
+  const response = await fetch(src)
+  if (!response.ok) throw new Error(`photo fetch failed: ${response.status}`)
+  const blob = await response.blob()
   const bitmap = await createImageBitmap(blob)
   const swap = quarters % 2 === 1
   const canvas = document.createElement('canvas')

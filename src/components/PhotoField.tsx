@@ -5,23 +5,21 @@ import { deletePhoto, loadPhotoSrc, savePhoto } from '@/lib/photos'
 import { pressable } from '@/lib/utils'
 
 export function usePhotoSrc(path: string | undefined): string | null {
-  const [src, setSrc] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState<{ path: string; src: string } | null>(null)
 
   useEffect(() => {
-    if (path === undefined) {
-      setSrc(null)
-      return
-    }
+    if (path === undefined) return
     let cancelled = false
-    void loadPhotoSrc(path).then(loaded => {
-      if (!cancelled) setSrc(loaded)
+    void loadPhotoSrc(path).then(src => {
+      if (!cancelled && src !== null) setLoaded({ path, src })
     })
     return () => {
       cancelled = true
     }
   }, [path])
 
-  return src
+  // deriving from the loaded path also keeps a stale photo from flashing while the next one loads
+  return loaded !== null && loaded.path === path ? loaded.src : null
 }
 
 const photoSides: PhotoSide[] = ['front', 'back']
@@ -56,7 +54,7 @@ function PhotoSlot({ side, path, onPick, onRemove }: PhotoSlotProps) {
       ) : (
         <>
           {src !== null ? (
-            <img src={src} alt={`${side} photo`} className="size-full object-cover" />
+            <img src={src} alt="" className="size-full object-cover" />
           ) : (
             <div className="size-full bg-muted" />
           )}

@@ -1,5 +1,5 @@
 import { RotateCwIcon } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { Slider } from '@/components/ui/slider'
 import type { CardCover } from '@/lib/model'
 import { rotateToJpegDataUrl } from '@/lib/photos'
@@ -21,11 +21,7 @@ export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
   const localRef = useRef<HTMLImageElement | null>(null)
   const [tall, setTall] = useState(false)
 
-  function attachRef(node: HTMLImageElement | null) {
-    localRef.current = node
-    if (typeof imgRef === 'function') imgRef(node)
-    else if (imgRef !== undefined && imgRef !== null) imgRef.current = node
-  }
+  useImperativeHandle(imgRef, () => localRef.current as HTMLImageElement)
 
   function measure(img: HTMLImageElement) {
     if (img.naturalWidth > 0) setTall(img.naturalWidth < img.naturalHeight * frameAspect)
@@ -40,7 +36,7 @@ export function CoverImage({ cover, src, imgRef }: CoverImageProps) {
   return (
     <div style={{ transform: `scale(${cover.scale})` }} className="absolute inset-0">
       <img
-        ref={attachRef}
+        ref={localRef}
         src={src}
         alt=""
         draggable={false}

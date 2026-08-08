@@ -1,0 +1,3 @@
+# supply-chain guard: don't install releases younger than 3 days (malicious
+# versions are typically caught and unpublished within hours)
+minimumReleaseAge: 4320

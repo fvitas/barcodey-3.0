@@ -150,15 +150,15 @@ export function DeckView({
   const openFixed = useRef<string | null>(null) // card escaped to position:fixed while open
   const unescapeTimer = useRef(0)
   const gesture = useRef<Gesture | null>(null)
+  const idsKey = cards.map(card => card.id).join('|')
   const lastReportedIndex = useRef(initialIndex)
-  const lastIdsKey = useRef(cards.map(card => card.id).join('|'))
+  const lastIdsKey = useRef(idsKey)
   const firstResetSignal = useRef(resetSignal)
 
   const cardsById = new Map(cards.map(card => [card.id, card]))
   const orderedCards = order.map(id => cardsById.get(id)).filter(card => card !== undefined)
   const count = orderedCards.length
   const open = expandedCardId !== null && cardsById.has(expandedCardId)
-  const idsKey = cards.map(card => card.id).join('|')
   const orderKey = order.join('|')
 
   const geo: Geometry | null =

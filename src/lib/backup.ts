@@ -7,13 +7,15 @@ function backupFileName(): string {
 }
 
 async function shareNative(json: string, fileName: string): Promise<void> {
-  const { Share } = await import('@capacitor/share')
-  const { uri } = await Filesystem.writeFile({
-    path: fileName,
-    directory: Directory.Cache,
-    encoding: Encoding.UTF8,
-    data: json,
-  })
+  const [{ Share }, { uri }] = await Promise.all([
+    import('@capacitor/share'),
+    Filesystem.writeFile({
+      path: fileName,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+      data: json,
+    }),
+  ])
 
   try {
     await Share.share({ title: 'Barcodey backup', url: uri })

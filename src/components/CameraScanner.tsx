@@ -54,6 +54,8 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
           window.clearInterval(timer)
           onDetectedRef.current(result)
         }
+      } catch {
+        // a bad frame shouldn't surface as an unhandled rejection — the next tick retries
       } finally {
         busy = false
       }

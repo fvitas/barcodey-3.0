@@ -29,7 +29,7 @@ function DocPhoto({ side, path, onOpen }: DocPhotoProps) {
       className="relative aspect-[1.586] w-full overflow-hidden rounded-xl"
     >
       {src !== null ? (
-        <img src={src} alt={`${side} photo`} className="size-full object-cover" />
+        <img src={src} alt="" className="size-full object-cover" />
       ) : (
         <div className="size-full bg-muted" />
       )}

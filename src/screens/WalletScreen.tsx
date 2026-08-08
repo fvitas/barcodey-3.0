@@ -274,11 +274,12 @@ export function WalletScreen() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 rounded-full border border-transparent bg-card py-1.5 pr-1.5 pl-4 shadow-sm transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30">
+        <div className="flex items-center gap-2.5 rounded-full border border-transparent bg-card py-1.5 pr-1.5 pl-4 shadow-sm transition-[border-color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30">
           <SearchIcon className="size-4.5 shrink-0 text-muted-foreground/70" />
           <input
             value={query}
             placeholder="Search cards"
+            aria-label="Search cards"
             className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-muted-foreground"
             onChange={handleQueryChange}
           />
