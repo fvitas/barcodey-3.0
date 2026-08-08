@@ -40,8 +40,10 @@ const encoders: Record<BarcodeFormat, [bcid: string, encode: Encoder]> = {
 export function renderBarcodeSvg(value: string, format: BarcodeFormat): string | null {
   const [bcid, encode] = encoders[format]
   const linear = !squareFormats.has(format) && format !== 'pdf417'
+  // Code 93 mandates two check chars — scanners reject bwip's default output without them
+  const check = format === 'code93' && { includecheck: true }
   try {
-    return encode({ bcid, text: value, scale: 3, ...(linear && { height: 15 }) }, drawingSVG())
+    return encode({ bcid, text: value, scale: 3, ...(linear && { height: 15 }), ...check }, drawingSVG())
   } catch {
     return null
   }
