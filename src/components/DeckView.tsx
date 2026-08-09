@@ -147,6 +147,7 @@ export function DeckView({
   const liftRaf = useRef(0)
   const placed = useRef(new Set<string>())
   const arrivals = useRef(new Set<string>())
+  const booted = useRef(false)
   const openFixed = useRef<string | null>(null) // card escaped to position:fixed while open
   const unescapeTimer = useRef(0)
   const gesture = useRef<Gesture | null>(null)
@@ -182,12 +183,13 @@ export function DeckView({
   function applySlot(el: HTMLDivElement, index: number, soft: number, live: boolean, zCap: number) {
     if (geo === null) return
     const raw = geo.frontY - spacing * index + soft
+    const y = conveyorY(index, soft, geo)
+    const depth = (raw - geo.frontY) / spacing
     el.style.transition = live || reduceMotion ? 'none' : slotEase
-    el.style.transform = `translateY(${conveyorY(index, soft, geo)}px) scale(${conveyorScale(index, soft, geo)})`
+    el.style.transform = `translateY(${y}px) scale(${conveyorScale(index, soft, geo)})`
     // stack above: nearer on top; passing/pile: over the front, newest pile card on top — all below the nav (z-30)
     // z is slot-relative, not index-based: absolute indexes tie once they clamp, flipping deep cards' paint order
     if (raw > geo.frontY + 1) {
-      const depth = (raw - geo.frontY) / spacing
       el.style.zIndex = String(Math.min(zCap, Math.max(21, 29 - Math.round(depth - 1))))
     } else {
       const slotsAbove = Math.max(0, Math.round((geo.frontY - raw) / spacing))
@@ -195,6 +197,11 @@ export function DeckView({
     }
     el.style.opacity = '1'
     el.style.pointerEvents = 'auto'
+    // big decks: cards fully above the stage or buried under the clamped pile skip paint and
+    // give up their compositor layer (will-change) — except mid-flight risers (swipe-to-back)
+    const culled = (y < -geo.cardH || depth - 1 > pileMax) && el.dataset.rising === undefined
+    el.style.visibility = culled ? 'hidden' : ''
+    el.style.willChange = culled ? 'auto' : ''
   }
 
   // WAAPI movement for the open/close card: CSS transitions silently misfire on the
@@ -555,10 +562,13 @@ export function DeckView({
     }
   }
 
-  // stage size drives all conveyor math
+  // stage size drives all conveyor math; measured synchronously — waiting for the
+  // observer's first async delivery paints a frame of unplaced cards on remounts
   useLayoutEffect(() => {
     const stage = stageRef.current
     if (stage === null) return
+    const rect = stage.getBoundingClientRect()
+    setDims({ width: rect.width, height: rect.height })
     const observer = new ResizeObserver(entries => {
       const entry = entries[0]
       if (entry !== undefined) {
@@ -636,16 +646,29 @@ export function DeckView({
     const risers = [...arrivals.current]
     arrivals.current.clear()
     placed.current = new Set(order)
-    layout(false)
+    // first placement snaps into place: fresh elements transition from their default
+    // transform (stage top), so an eased pass makes the whole deck fly in on mount;
+    // a stage fade stands in as the entrance — deliberately ignores reduced motion
+    if (!booted.current) {
+      stageRef.current?.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' })
+    }
+    layout(!booted.current)
+    booted.current = true
     // Blink coalesces the pre-place and slot writes into one recalc and skips the transition; WAAPI always runs
     if (!reduceMotion) {
       risers.forEach(id => {
         const el = cardEls.current.get(id)
         if (el === undefined) return
-        el.animate?.(
+        // un-cull for the rise: the target slot may be off-stage, but the flight is on-screen
+        el.dataset.rising = '1'
+        el.style.visibility = ''
+        el.style.willChange = ''
+        const animation = el.animate?.(
           [{ transform: `translateY(${dims.height + 30}px) scale(1)` }, { transform: el.style.transform }],
           { duration: 450, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
         )
+        // the next layout pass re-culls it once it has settled
+        void animation?.finished.then(() => delete el.dataset.rising).catch(() => delete el.dataset.rising)
       })
     }
     reportIndex()
