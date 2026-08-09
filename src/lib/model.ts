@@ -142,6 +142,10 @@ export function sortCards(cards: Card[], mode: SortMode): Card[] {
   return sorted.sort((a, b) => Number(b.favorite) - Number(a.favorite))
 }
 
+export function findDuplicateCard(cards: Card[], value: string, format: BarcodeFormat): Card | undefined {
+  return cards.find(card => card.value === value && card.format === format)
+}
+
 export function formatAddedAt(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }

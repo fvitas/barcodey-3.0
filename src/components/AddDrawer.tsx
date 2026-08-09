@@ -15,6 +15,7 @@ import {
   barcodeFormats,
   cardThemeGradients,
   cardThemes,
+  findDuplicateCard,
   formatLabels,
   type BarcodeFormat,
   type Card,
@@ -25,6 +26,8 @@ import {
 } from '@/lib/model'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
+import { useUiState } from '@/state/ui-state-context'
+import { useWallet } from '@/state/wallet-context'
 
 type AddDrawerProps = {
   open: boolean
@@ -32,8 +35,56 @@ type AddDrawerProps = {
   onAdd: (card: Card) => void
 }
 
+type DuplicateBannerProps = {
+  format: BarcodeFormat
+  value: string
+  name: string
+  onView: () => void
+  onRescan?: () => void
+}
+
+// warn, never block: the form below stays live so adding the twin anyway is just continuing
+function DuplicateBanner({ format, value, name, onView, onRescan }: DuplicateBannerProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', duration: 0.5, bounce: 0.35 }}
+      className="mb-5 flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3 dark:bg-amber-500/10"
+    >
+      <div className="min-w-0">
+        <p className="text-xs font-semibold tracking-wider text-amber-600 uppercase dark:text-amber-400">
+          Already in your wallet · {formatLabels[format]}
+        </p>
+        <p className="mt-0.5 truncate font-mono text-sm font-medium tracking-widest text-foreground/80">{value}</p>
+        <p className="mt-1 truncate text-xs font-medium text-muted-foreground">
+          Saved as <span className="font-semibold text-foreground">{name}</span>
+        </p>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <button
+          onClick={onView}
+          className={`${pressable} rounded-full px-3 text-xs font-semibold text-amber-700 dark:text-amber-400`}
+        >
+          View card
+        </button>
+        {onRescan !== undefined && (
+          <button
+            onClick={onRescan}
+            className={`${pressable} rounded-full px-3 text-xs font-semibold text-muted-foreground`}
+          >
+            Rescan
+          </button>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
 export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const navigate = useNavigate()
+  const { cards } = useWallet()
+  const { update } = useUiState()
   const [mode, setMode] = useState<'scan' | 'image' | 'manual'>('scan')
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [name, setName] = useState('')
@@ -45,10 +96,20 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [expiry, setExpiry] = useState<string | undefined>(undefined)
   // pending quarter turns keyed by photo path — previewed in the adjuster, baked on save
   const [rotations, setRotations] = useState<Record<string, number>>({})
+  // manual dupes warn on first submit; keying by format:value self-invalidates on any edit
+  const [warnedKey, setWarnedKey] = useState<string | null>(null)
   const coverPath = cover !== undefined ? photos[cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
 
   const canSubmit = name.trim() !== '' && (mode === 'manual' ? value.trim() !== '' : scanResult !== null)
+
+  const scannedDuplicate =
+    mode !== 'manual' && scanResult !== null
+      ? findDuplicateCard(cards, scanResult.value, scanResult.format)
+      : undefined
+  const manualKey = `${format}:${value.trim()}`
+  const manualDuplicate =
+    mode === 'manual' && warnedKey === manualKey ? findDuplicateCard(cards, value.trim(), format) : undefined
 
   function reset() {
     setMode('scan')
@@ -61,6 +122,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setCover(undefined)
     setExpiry(undefined)
     setRotations({})
+    setWarnedKey(null)
   }
 
   function handleRotate(path: string) {
@@ -86,8 +148,20 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       .catch(() => {})
   }
 
+  function handleViewCard(id: string) {
+    handleClose()
+    // the notification-tap plumbing: expand + go home works in deck, list, and grid
+    update({ expandedCardId: id })
+    navigate('/')
+  }
+
   async function handleSubmit() {
     if (!canSubmit) return
+    // manual dupes surface at submit; scanned ones already showed the banner at detection
+    if (mode === 'manual' && warnedKey !== manualKey && findDuplicateCard(cards, value.trim(), format) !== undefined) {
+      setWarnedKey(manualKey)
+      return
+    }
     onAdd({
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -162,7 +236,17 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
               </div>
             )}
 
-            {mode !== 'manual' && scanResult !== null && (
+            {mode !== 'manual' && scanResult !== null && scannedDuplicate !== undefined && (
+              <DuplicateBanner
+                format={scanResult.format}
+                value={scanResult.value}
+                name={scannedDuplicate.name}
+                onView={() => handleViewCard(scannedDuplicate.id)}
+                onRescan={() => setScanResult(null)}
+              />
+            )}
+
+            {mode !== 'manual' && scanResult !== null && scannedDuplicate === undefined && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -320,6 +404,15 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
           </div>
 
           <div className="px-5 pt-4 pb-5">
+            {manualDuplicate !== undefined && (
+              <DuplicateBanner
+                format={format}
+                value={value.trim()}
+                name={manualDuplicate.name}
+                onView={() => handleViewCard(manualDuplicate.id)}
+              />
+            )}
+
             <button
               onClick={() => void handleSubmit()}
               disabled={!canSubmit}

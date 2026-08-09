@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyWallet, sortCards, walletSchema, type Card, type Doc, type Wallet } from '@/lib/model'
+import { emptyWallet, findDuplicateCard, sortCards, walletSchema, type Card, type Doc, type Wallet } from '@/lib/model'
 
 function makeCard(patch: Partial<Card> = {}): Card {
   return {
@@ -78,6 +78,30 @@ describe('favorites pinning', () => {
       makeCard({ name: 'D', favorite: true }),
     ]
     expect(sortCards(cards, 'manual').map(card => card.name)).toEqual(['B', 'D', 'C', 'A'])
+  })
+})
+
+describe('findDuplicateCard', () => {
+  const lidl = makeCard({ name: 'Lidl', value: '4006381333931', format: 'ean13' })
+  const idea = makeCard({ name: 'IDEA', value: 'IDEA-77', format: 'qrcode' })
+  const cards = [lidl, idea]
+
+  it('finds a card matching value and format', () => {
+    expect(findDuplicateCard(cards, '4006381333931', 'ean13')).toBe(lidl)
+  })
+
+  it('returns undefined when the value matches but the format differs', () => {
+    expect(findDuplicateCard(cards, '4006381333931', 'code128')).toBeUndefined()
+  })
+
+  it('returns undefined when nothing matches', () => {
+    expect(findDuplicateCard(cards, '000', 'ean13')).toBeUndefined()
+    expect(findDuplicateCard([], '4006381333931', 'ean13')).toBeUndefined()
+  })
+
+  it('returns the first match when twins already exist', () => {
+    const twin = makeCard({ name: 'Lidl twin', value: '4006381333931', format: 'ean13' })
+    expect(findDuplicateCard([lidl, twin], '4006381333931', 'ean13')).toBe(lidl)
   })
 })
 
