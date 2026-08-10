@@ -6,16 +6,9 @@ import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { useBarcodeSvg } from '@/hooks/use-barcode-svg'
+import { cardFace } from '@/lib/color'
 import { expiryLongLabel } from '@/lib/expiry'
-import {
-  cardThemeGradients,
-  formatAddedAt,
-  formatLabels,
-  squareFormats,
-  type Card,
-  type PhotoSide,
-  type ViewMode,
-} from '@/lib/model'
+import { formatAddedAt, formatLabels, squareFormats, type Card, type PhotoSide, type ViewMode } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 
 type PassPhotoProps = {
@@ -204,6 +197,7 @@ export function WallPass({
   const gridTile = view === 'grid' && !active
   const coverSrc = usePhotoSrc(card.cover !== undefined ? card.photos[card.cover.side] : undefined)
   const photoFace = card.cover !== undefined && coverSrc !== null
+  const face = cardFace(card)
 
   return (
     <motion.div
@@ -220,7 +214,8 @@ export function WallPass({
       {gridTile ? (
         <button
           onClick={() => onToggle(card.id)}
-          className={`relative flex aspect-[1.586] w-full flex-col justify-between rounded-2xl p-4 text-left ${cardThemeGradients[card.theme]}`}
+          style={face.style}
+          className={`relative flex aspect-[1.586] w-full flex-col justify-between rounded-2xl p-4 text-left ${face.className}`}
         >
           {photoFace && card.cover !== undefined ? (
             <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
@@ -264,7 +259,8 @@ export function WallPass({
             active
               ? 'rounded-t-2xl'
               : 'rounded-2xl transition-[border-radius] delay-[180ms] duration-150 ease-out'
-          } ${cardThemeGradients[card.theme]}`}
+          } ${face.className}`}
+          style={face.style}
         >
           {/* cover art is clipped by an inner wrapper so the punch notches outside it survive */}
           {photoFace && card.cover !== undefined ? (

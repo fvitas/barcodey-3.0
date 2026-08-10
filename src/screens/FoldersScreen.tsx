@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { Input } from '@/components/ui/input'
-import { cardThemeGradients, type Card } from '@/lib/model'
+import { cardFace } from '@/lib/color'
+import type { Card } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 import { useWallet } from '@/state/wallet-context'
 
@@ -16,8 +17,9 @@ function FanPreview({ cards }: { cards: Card[] }) {
       {cards.slice(0, 3).map((card, index) => (
         <span
           key={card.id}
-          className={`absolute h-12 w-18 rounded-lg shadow-md shadow-slate-900/15 ring-2 ring-card ${cardThemeGradients[card.theme]}`}
+          className={`absolute h-12 w-18 rounded-lg shadow-md shadow-slate-900/15 ring-2 ring-card ${cardFace(card).className}`}
           style={{
+            ...cardFace(card).style,
             transform: `rotate(${fanRotations[index]}deg) translateX(${(index - 1) * 14}px)`,
             zIndex: index === 2 ? 2 : index,
           }}
@@ -139,7 +141,7 @@ export function FoldersScreen() {
 
         <button
           onClick={() => navigate('/folders/documents')}
-          className={`${pressable} rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 p-4 text-left shadow-sm ring-1 ring-white/10`}
+          className={`${pressable} rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 bg-origin-border p-4 text-left shadow-sm ring-1 ring-white/10`}
         >
           <div className="mb-3 flex h-16 items-center justify-center">
             <span className="flex size-12 items-center justify-center rounded-xl bg-white/10 text-white/80">

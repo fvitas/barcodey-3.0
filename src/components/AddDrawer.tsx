@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { CameraScanner } from '@/components/CameraScanner'
+import { ColorRow } from '@/components/ColorRow'
 import { ScanImagePicker } from '@/components/ScanImagePicker'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
@@ -13,8 +14,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 import {
   barcodeFormats,
-  cardThemeGradients,
-  cardThemes,
   findDuplicateCard,
   formatLabels,
   type BarcodeFormat,
@@ -24,6 +23,7 @@ import {
   type CardTheme,
   type PhotoSide,
 } from '@/lib/model'
+import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
 import { hasNativeScanner, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
 import { useUiState } from '@/state/ui-state-context'
@@ -91,6 +91,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [value, setValue] = useState('')
   const [format, setFormat] = useState<BarcodeFormat>('code128')
   const [theme, setTheme] = useState<CardTheme>('ocean')
+  const [color, setColor] = useState<string | undefined>(undefined)
   const [photos, setPhotos] = useState<CardPhotos>({})
   const [cover, setCover] = useState<CardCover | undefined>(undefined)
   const [expiry, setExpiry] = useState<string | undefined>(undefined)
@@ -118,6 +119,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setValue('')
     setFormat('code128')
     setTheme('ocean')
+    setColor(undefined)
     setPhotos({})
     setCover(undefined)
     setExpiry(undefined)
@@ -132,6 +134,13 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   function handlePhotosChange(next: CardPhotos) {
     // removing the photo used as cover falls back to the gradient face
     if (cover !== undefined && next[cover.side] === undefined) setCover(undefined)
+    // auto-apply the photo color: the first photo always recolors, later ones only fill a missing color
+    const added = (['front', 'back'] as const).find(side => next[side] !== undefined && next[side] !== photos[side])
+    const hadNoPhotos = photos.front === undefined && photos.back === undefined
+    const addedPath = added !== undefined ? next[added] : undefined
+    if (addedPath !== undefined && (hadNoPhotos || color === undefined)) {
+      void extractPhotoColor(addedPath).then(hex => hex !== null && setColor(hex))
+    }
     setPhotos(next)
   }
 
@@ -168,6 +177,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       value: mode !== 'manual' && scanResult !== null ? scanResult.value : value.trim(),
       format: mode !== 'manual' && scanResult !== null ? scanResult.format : format,
       theme,
+      color,
       favorite: false,
       addedAt: new Date().toISOString().slice(0, 10),
       folderId: null,
@@ -333,17 +343,17 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Color
                 </span>
-                <div className="mb-4 flex gap-2.5">
-                  {cardThemes.map(option => (
-                    <button
-                      key={option}
-                      aria-label={option}
-                      onClick={() => setTheme(option)}
-                      className={`${pressable} size-9 rounded-full ${cardThemeGradients[option]} ${
-                        option === theme ? 'ring-2 ring-foreground ring-offset-2 ring-offset-card' : ''
-                      }`}
-                    />
-                  ))}
+                <div className="mb-4">
+                  <ColorRow
+                    theme={theme}
+                    color={color}
+                    photos={photos}
+                    onPickTheme={option => {
+                      setTheme(option)
+                      setColor(undefined)
+                    }}
+                    onPickColor={setColor}
+                  />
                 </div>
 
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">

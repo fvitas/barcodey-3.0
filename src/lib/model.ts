@@ -48,6 +48,10 @@ const cardSchema = z.object({
   value: z.string(),
   format: z.enum(barcodeFormats),
   theme: z.enum(cardThemes),
+  color: z
+    .string()
+    .regex(/^#[0-9a-f]{6}$/)
+    .optional(), // custom face color (photo-extracted or hand-picked); wins over theme
   favorite: z.boolean(),
   addedAt: z.string(), // ISO date, sortable lexicographically
   folderId: z.string().nullable(),

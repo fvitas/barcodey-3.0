@@ -5,7 +5,8 @@ import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PassDetails } from '@/components/WallPass'
-import { cardThemeGradients, formatLabels, type Card } from '@/lib/model'
+import { cardFace } from '@/lib/color'
+import { formatLabels, type Card } from '@/lib/model'
 
 type DeckViewProps = {
   cards: Card[]
@@ -65,10 +66,12 @@ function conveyorScale(index: number, soft: number, geo: Geometry): number {
 function DeckFace({ card, open }: { card: Card; open: boolean }) {
   const coverSrc = usePhotoSrc(card.cover !== undefined ? card.photos[card.cover.side] : undefined)
   const photoFace = card.cover !== undefined && coverSrc !== null
+  const face = cardFace(card)
 
   return (
     <div
-      className={`relative flex aspect-[1.586] w-full flex-col justify-between p-4 shadow-lg shadow-slate-900/15 ${cardThemeGradients[card.theme]} ${
+      style={face.style}
+      className={`relative flex aspect-[1.586] w-full flex-col justify-between p-4 shadow-lg shadow-slate-900/15 ${face.className} ${
         open ? 'rounded-t-2xl' : 'rounded-2xl transition-[border-radius] duration-[450ms] ease-out'
       }`}
     >

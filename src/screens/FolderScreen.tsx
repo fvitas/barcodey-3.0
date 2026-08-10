@@ -7,7 +7,8 @@ import { EditDrawer } from '@/components/EditDrawer'
 import { WallPass } from '@/components/WallPass'
 import { Input } from '@/components/ui/input'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
-import { cardThemeGradients, type Card, type Folder } from '@/lib/model'
+import { cardFace } from '@/lib/color'
+import type { Card, Folder } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
@@ -43,7 +44,8 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
                   className={`${pressable} flex w-full items-center gap-3 rounded-xl bg-muted/60 p-3 text-left hover:bg-muted`}
                 >
                   <span
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${cardThemeGradients[card.theme]}`}
+                    style={cardFace(card).style}
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${cardFace(card).className}`}
                   >
                     {card.name.charAt(0).toUpperCase()}
                   </span>

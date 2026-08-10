@@ -177,6 +177,19 @@ describe('walletSchema (backup format)', () => {
     expect(walletSchema.safeParse(wallet).success).toBe(false)
   })
 
+  it('round-trips a card with a custom color', () => {
+    const wallet: Wallet = { version: 1, cards: [makeCard({ color: '#22c55e' })], folders: [], documents: [] }
+    const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
+    expect(parsed.cards[0].color).toBe('#22c55e')
+  })
+
+  it('rejects a malformed custom color', () => {
+    for (const color of ['22c55e', '#22C55E', '#22c', 'green']) {
+      const wallet = { version: 1, cards: [{ ...makeCard(), color }], folders: [] }
+      expect(walletSchema.safeParse(wallet).success).toBe(false)
+    }
+  })
+
   it('rejects an unknown theme', () => {
     const wallet = { version: 1, cards: [{ ...makeCard(), theme: 'lava' }], folders: [] }
     expect(walletSchema.safeParse(wallet).success).toBe(false)
