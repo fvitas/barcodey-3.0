@@ -125,17 +125,17 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col gap-2 px-5 pb-4 text-sm text-muted-foreground">
+      <div className="flex items-center justify-between gap-2.5 px-5 pb-4 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2.5">
+          <CalendarIcon className="size-4 text-muted-foreground/70" />
+          Added {formatAddedAt(card.addedAt)}
+        </p>
         {card.expiry !== undefined && (
           <p className="flex items-center gap-2.5">
             <CalendarIcon className="size-4 text-muted-foreground/70" />
             {expiryLongLabel(card.expiry, new Date())}
           </p>
         )}
-        <p className="flex items-center gap-2.5">
-          <CalendarIcon className="size-4 text-muted-foreground/70" />
-          Added {formatAddedAt(card.addedAt)}
-        </p>
       </div>
 
       {/* mt-auto pins the actions to the bottom of the deck's stretched card; inert in block flow */}
