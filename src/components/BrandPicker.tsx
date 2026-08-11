@@ -48,16 +48,13 @@ function BrandRow({ brand, onPick }: BrandRowProps) {
   )
 }
 
-// a nested vaul drawer, not a portal: radix disables body pointer events and locks scroll
-// while the host drawer is modal, so anything portaled next to it is inert
 export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
-  // null = still loading; a visible failed state beats a silently empty list
+  // null while loading — distinct from a failed load
   const [catalog, setCatalog] = useState<Brand[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [query, setQuery] = useState('')
   const country = userCountry()
-  // state, not a ref: the drawer content remounts on every open and the virtualizer
-  // only re-attaches to the new scroll element if that mount causes a render
+  // state, not a ref: remounting drawer content re-attaches the virtualizer only via a render
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -77,8 +74,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
   }, [open])
 
   const searching = query.trim() !== ''
-  // the virtualizer re-renders on every scroll frame — regrouping 2k+ rows each frame
-  // would defeat the virtualization
+  // memoized: the virtualizer re-renders on every scroll frame
   const rows = useMemo<Row[]>(
     () =>
       searching
@@ -93,8 +89,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
   const stickyIndexes = useMemo(() => rows.flatMap((row, index) => (row.type === 'header' ? [index] : [])), [rows])
   const activeStickyRef = useRef(0)
 
-  // TanStack's sticky pattern: the current group's header always stays in the rendered
-  // range and pins via position:sticky until the next header pushes it out
+  // TanStack sticky pattern: keep the active group header in range so it can pin
   const rangeExtractor = useCallback(
     (range: Range) => {
       activeStickyRef.current = [...stickyIndexes].reverse().find(index => range.startIndex >= index) ?? 0

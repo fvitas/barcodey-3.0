@@ -25,7 +25,7 @@ export function BrandField({ brandId, brandBg, onPick, onClear, onToggleBg }: Br
         if (!cancelled) setCatalog(brands)
       })
       .catch(() => {
-        // the picker surfaces load failures; the strip just falls back to the empty state
+        // the picker surfaces load failures
       })
     return () => {
       cancelled = true
@@ -45,7 +45,6 @@ export function BrandField({ brandId, brandBg, onPick, onClear, onToggleBg }: Br
       {brand === undefined ? (
         <button
           onClick={() => setPickerOpen(true)}
-          // pressable's own `border border-transparent` swallows the dashed border without importants
           className={`${pressable} flex w-full items-center gap-2.5 rounded-xl border-2! border-dashed! border-input! px-3.5 py-2.5 text-sm font-semibold text-muted-foreground`}
         >
           <span className="flex size-8 items-center justify-center rounded-lg bg-muted">
@@ -92,7 +91,7 @@ export function BrandField({ brandId, brandBg, onPick, onClear, onToggleBg }: Br
 
           <button onClick={() => onToggleBg(!showBg)} className={`${pressable} mt-2.5 flex items-center gap-2`}>
             <span
-              className={`flex size-4.5 items-center justify-center rounded-md ${
+              className={`flex size-4.5 items-center justify-center rounded-[5px] ${
                 showBg ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground/50'
               }`}
             >

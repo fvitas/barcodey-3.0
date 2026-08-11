@@ -8,8 +8,7 @@ type BrandMarkProps = {
   className: string // size + monogram text classes from the call site
 }
 
-// the brand logo wherever a card face showed the first-letter monogram; the monogram
-// stays the fallback for cards without a brand or ids missing from the bundled catalog
+// monogram is the fallback for brandless cards and ids missing from the catalog
 export function BrandMark({ name, brandId, brandBg, className }: BrandMarkProps) {
   const [failedId, setFailedId] = useState<string | null>(null)
   const showLogo = brandId !== undefined && brandId !== failedId
