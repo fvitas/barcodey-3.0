@@ -52,6 +52,8 @@ const cardSchema = z.object({
     .string()
     .regex(/^#[0-9a-f]{6}$/)
     .optional(), // custom face color (photo-extracted or hand-picked); wins over theme
+  brandId: z.string().optional(), // bundled brand-catalog logo reference; name+color were baked at pick time
+  brandBg: z.boolean().optional(), // false = bare logo on the face; absent = white squircle chip
   favorite: z.boolean(),
   addedAt: z.string(), // ISO date, sortable lexicographically
   folderId: z.string().nullable(),

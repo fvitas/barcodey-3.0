@@ -1,6 +1,7 @@
 import { StarIcon } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { BrandMark } from '@/components/BrandMark'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
@@ -87,9 +88,7 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
 
       <div className="relative flex items-center gap-3">
         {!photoFace && (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/25 text-base font-bold text-white">
-            {card.name.charAt(0).toUpperCase()}
-          </span>
+          <BrandMark name={card.name} brandId={card.brandId} brandBg={card.brandBg} className="size-9 text-base" />
         )}
         <p className="min-w-0 flex-1 truncate text-lg leading-tight font-extrabold text-white">{card.name}</p>
         {/* only the top 66px of a stacked card shows, so the badge lives in this row, not a bottom corner */}

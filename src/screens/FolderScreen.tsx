@@ -3,6 +3,7 @@ import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { Drawer } from 'vaul'
+import { BrandMark } from '@/components/BrandMark'
 import { EditDrawer } from '@/components/EditDrawer'
 import { WallPass } from '@/components/WallPass'
 import { Input } from '@/components/ui/input'
@@ -47,7 +48,11 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
                     style={cardFace(card).style}
                     className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${cardFace(card).className}`}
                   >
-                    {card.name.charAt(0).toUpperCase()}
+                    {card.brandId !== undefined ? (
+                      <BrandMark name={card.name} brandId={card.brandId} brandBg={card.brandBg} className="size-6 text-xs" />
+                    ) : (
+                      card.name.charAt(0).toUpperCase()
+                    )}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
                     {card.name}

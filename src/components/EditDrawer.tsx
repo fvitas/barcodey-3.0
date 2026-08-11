@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Drawer } from 'vaul'
+import { BrandField } from '@/components/BrandField'
 import { ColorRow } from '@/components/ColorRow'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
@@ -83,6 +84,19 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                     }
                   />
                 </label>
+
+                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                  Brand <span className="normal-case">(optional)</span>
+                </span>
+                <div className="mb-5">
+                  <BrandField
+                    brandId={card.brandId}
+                    brandBg={card.brandBg}
+                    onPick={brand => onChange(card.id, { brandId: brand.id, name: brand.name, color: brand.color })}
+                    onClear={() => onChange(card.id, { brandId: undefined })}
+                    onToggleBg={show => onChange(card.id, { brandBg: show ? undefined : false })}
+                  />
+                </div>
 
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Color

@@ -2,6 +2,7 @@ import { CalendarIcon, ChevronDownIcon, PencilIcon, StarIcon, Trash2Icon } from 
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { BrandMark } from '@/components/BrandMark'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
@@ -230,9 +231,7 @@ export function WallPass({
             {photoFace ? (
               <span />
             ) : (
-              <span className="flex size-9 items-center justify-center rounded-full bg-white/25 text-sm font-bold text-white">
-                {card.name.charAt(0).toUpperCase()}
-              </span>
+              <BrandMark name={card.name} brandId={card.brandId} brandBg={card.brandBg} className="size-9 text-sm" />
             )}
             <span className="flex items-center gap-1.5">
               <ExpiryPill expiry={card.expiry} variant="disc" />
@@ -303,9 +302,7 @@ export function WallPass({
           >
             <div className="flex min-w-0 items-center gap-3.5">
               {!photoFace && (
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/25 text-lg font-bold text-white">
-                  {card.name.charAt(0).toUpperCase()}
-                </span>
+                <BrandMark name={card.name} brandId={card.brandId} brandBg={card.brandBg} className="size-11 text-lg" />
               )}
 
               <div className="min-w-0">

@@ -10,3 +10,6 @@ dist
 *.md
 docs/
 mockups/
+
+# brand catalog pipeline cache (re-downloadable)
+scripts/.cache/

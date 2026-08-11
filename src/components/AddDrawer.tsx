@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
+import { BrandField } from '@/components/BrandField'
 import { CameraScanner } from '@/components/CameraScanner'
 import { ColorRow } from '@/components/ColorRow'
 import { ScanImagePicker } from '@/components/ScanImagePicker'
@@ -92,6 +93,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [format, setFormat] = useState<BarcodeFormat>('code128')
   const [theme, setTheme] = useState<CardTheme>('ocean')
   const [color, setColor] = useState<string | undefined>(undefined)
+  const [brandId, setBrandId] = useState<string | undefined>(undefined)
+  const [brandBg, setBrandBg] = useState<boolean | undefined>(undefined)
   const [photos, setPhotos] = useState<CardPhotos>({})
   const [cover, setCover] = useState<CardCover | undefined>(undefined)
   const [expiry, setExpiry] = useState<string | undefined>(undefined)
@@ -120,6 +123,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     setFormat('code128')
     setTheme('ocean')
     setColor(undefined)
+    setBrandId(undefined)
+    setBrandBg(undefined)
     setPhotos({})
     setCover(undefined)
     setExpiry(undefined)
@@ -178,6 +183,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       format: mode !== 'manual' && scanResult !== null ? scanResult.format : format,
       theme,
       color,
+      brandId,
+      brandBg,
       favorite: false,
       addedAt: new Date().toISOString().slice(0, 10),
       folderId: null,
@@ -339,6 +346,23 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(capitalizeFirst(event.target.value))}
                   />
                 </label>
+
+                <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                  Brand <span className="normal-case">(optional)</span>
+                </span>
+                <div className="mb-4">
+                  <BrandField
+                    brandId={brandId}
+                    brandBg={brandBg}
+                    onPick={brand => {
+                      setBrandId(brand.id)
+                      setName(brand.name)
+                      setColor(brand.color)
+                    }}
+                    onClear={() => setBrandId(undefined)}
+                    onToggleBg={show => setBrandBg(show ? undefined : false)}
+                  />
+                </div>
 
                 <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                   Color

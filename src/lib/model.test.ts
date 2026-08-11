@@ -190,6 +190,24 @@ describe('walletSchema (backup format)', () => {
     }
   })
 
+  it('round-trips a card with a brand', () => {
+    const wallet: Wallet = {
+      version: 1,
+      cards: [makeCard({ brandId: 'lidl', brandBg: false })],
+      folders: [],
+      documents: [],
+    }
+    const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
+    expect(parsed.cards[0].brandId).toBe('lidl')
+    expect(parsed.cards[0].brandBg).toBe(false)
+  })
+
+  it('parses a brandless card with both brand fields absent', () => {
+    const parsed = walletSchema.parse({ version: 1, cards: [makeCard()], folders: [] })
+    expect(parsed.cards[0].brandId).toBeUndefined()
+    expect(parsed.cards[0].brandBg).toBeUndefined()
+  })
+
   it('rejects an unknown theme', () => {
     const wallet = { version: 1, cards: [{ ...makeCard(), theme: 'lava' }], folders: [] }
     expect(walletSchema.safeParse(wallet).success).toBe(false)
