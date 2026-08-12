@@ -9,10 +9,10 @@ import {
   groupBrandsByLetter,
   loadBrandCatalog,
   searchBrands,
-  suggestBrandUrl,
   userCountry,
   type Brand,
 } from '@/lib/brands'
+import { suggestBrandUrl } from '@/lib/feedback'
 import { pressable } from '@/lib/utils'
 
 type BrandPickerProps = {

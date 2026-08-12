@@ -1,0 +1,25 @@
+name: Report a bug
+description: Something in Barcodey isn't working right
+title: 'Bug: '
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, and what went wrong? Screenshots welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Tap …
+        3. …
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS
+      placeholder: e.g. Pixel 8, Android 15

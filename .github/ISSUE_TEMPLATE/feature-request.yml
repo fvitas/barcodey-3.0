@@ -1,0 +1,16 @@
+name: Request a feature
+description: Suggest an idea for Barcodey
+title: 'Feature: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like Barcodey to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is this useful to you?
+      description: The problem it solves or the situation where you'd use it

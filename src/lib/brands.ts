@@ -25,21 +25,6 @@ export function brandCategoryLabel(brand: Brand): string {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
-export function suggestBrandUrl(query: string): string {
-  const name = query.trim()
-  const title = name === '' ? 'Brand suggestion' : `Brand suggestion: ${name}`
-  const body = [
-    `**Brand name:** ${name}`,
-    '',
-    '**Country:** ',
-    '',
-    '**Logo:** attach an image or paste a link — square logo with a transparent background works best',
-    '',
-    '**Brand color (optional):** hex like `#0050aa`, or just name it — otherwise we pick it from the logo',
-  ].join('\n')
-  return `https://github.com/fvitas/barcodey-3.0/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`
-}
-
 export function userCountry(): string | undefined {
   try {
     return new Intl.Locale(navigator.language).region?.toLowerCase()

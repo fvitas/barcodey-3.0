@@ -1,0 +1,28 @@
+name: Suggest a brand
+description: Suggest a brand for the Barcodey catalog
+title: 'Brand suggestion'
+labels: [brand]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Brand name
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: Where this brand operates — helps us tell same-name brands apart
+    validations:
+      required: true
+  - type: textarea
+    id: logo
+    attributes:
+      label: Logo
+      description: Attach an image or paste a link — a square logo with a transparent background works best
+  - type: input
+    id: color
+    attributes:
+      label: Brand color (optional)
+      description: A hex like `#0050aa`, or just name it — otherwise we pick it from the logo

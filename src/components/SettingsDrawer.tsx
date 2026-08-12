@@ -1,9 +1,11 @@
+import { ExternalLinkIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Drawer } from 'vaul'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
 import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
+import { newIssueUrl, type IssueTemplate } from '@/lib/feedback'
 import { viewModes, walletSchema, type Wallet } from '@/lib/model'
 import { requestNotificationPermission } from '@/lib/notifications'
 import { pressable } from '@/lib/utils'
@@ -18,6 +20,11 @@ type SettingsDrawerProps = {
 
 const appearances = ['light', 'dark', 'system'] as const
 const views = viewModes
+
+const feedbackLinks: { label: string; template: IssueTemplate }[] = [
+  { label: 'Report a bug', template: 'bug-report.yml' },
+  { label: 'Request a feature', template: 'feature-request.yml' },
+]
 
 function countLabel(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`
@@ -209,6 +216,23 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               onChange={handleImportFile}
             />
 
+            <span className="mt-5 mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Feedback
+            </span>
+            <div className="divide-y divide-border/60 overflow-hidden rounded-xl bg-muted/60">
+              {feedbackLinks.map(link => (
+                <a
+                  key={link.template}
+                  href={newIssueUrl(link.template)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`${pressable} flex items-center justify-between px-4 py-3`}
+                >
+                  <span className="text-sm font-semibold text-foreground">{link.label}</span>
+                  <ExternalLinkIcon className="size-4 text-muted-foreground/70" />
+                </a>
+              ))}
+            </div>
           </div>
         </Drawer.Content>
       </Drawer.Portal>

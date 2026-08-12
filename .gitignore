@@ -8,6 +8,7 @@ dist
 
 # private planning material & instructions — never commit
 *.md
+!README.md
 docs/
 mockups/
 
