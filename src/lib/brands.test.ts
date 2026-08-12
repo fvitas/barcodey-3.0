@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { brandCategoryLabel, groupBrandsByLetter, searchBrands, type Brand } from './brands'
+import { brandCategoryLabel, groupBrandsByLetter, searchBrands, suggestBrandUrl, type Brand } from './brands'
 
 function brand(overrides: Partial<Brand> & { id: string; name: string }): Brand {
   return { countries: ['001'], cat: 'supermarket', color: '#0050aa', ...overrides }
@@ -67,5 +67,24 @@ describe('brandCategoryLabel', () => {
   it('prettifies category slugs', () => {
     expect(brandCategoryLabel(brand({ id: 'x', name: 'X', cat: 'fast_food' }))).toBe('Fast food')
     expect(brandCategoryLabel(brand({ id: 'y', name: 'Y' }))).toBe('Supermarket')
+  })
+})
+
+describe('suggestBrandUrl', () => {
+  it('prefills the searched name into title and body', () => {
+    const url = new URL(suggestBrandUrl('  Maxi '))
+    const params = url.searchParams
+    expect(url.origin + url.pathname).toBe('https://github.com/fvitas/barcodey-3.0/issues/new')
+    expect(params.get('title')).toBe('Brand suggestion: Maxi')
+    expect(params.get('body')).toContain('**Brand name:** Maxi')
+    expect(params.get('body')).toContain('**Country:**')
+    expect(params.get('body')).toContain('**Logo:**')
+    expect(params.get('body')).toContain('**Brand color (optional):**')
+  })
+
+  it('drops the name suffix when the query is blank', () => {
+    const params = new URL(suggestBrandUrl('')).searchParams
+    expect(params.get('title')).toBe('Brand suggestion')
+    expect(params.get('body')).toContain('**Brand name:** \n')
   })
 })

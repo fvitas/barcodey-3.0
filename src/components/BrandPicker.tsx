@@ -9,6 +9,7 @@ import {
   groupBrandsByLetter,
   loadBrandCatalog,
   searchBrands,
+  suggestBrandUrl,
   userCountry,
   type Brand,
 } from '@/lib/brands'
@@ -197,10 +198,16 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
           <div className="px-5 pt-3 pb-8">
             <button
               onClick={handleClose}
-              className={`${pressable} w-full rounded-xl border-2! border-dashed! border-input! py-3 text-sm font-semibold text-muted-foreground`}
+              className={`${pressable} w-full rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
             >
-              Can’t find it? Continue without a brand
+              Cancel
             </button>
+            <p className="pt-3 text-center text-[0.8125rem] font-medium text-muted-foreground">
+              Missing a brand?{' '}
+              <a href={suggestBrandUrl(query)} target="_blank" rel="noreferrer" className="font-bold text-primary">
+                Suggest it on GitHub ↗
+              </a>
+            </p>
           </div>
         </Drawer.Content>
       </Drawer.Portal>
