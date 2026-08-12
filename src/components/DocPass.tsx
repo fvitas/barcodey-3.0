@@ -1,6 +1,7 @@
 import { CalendarIcon, ChevronDownIcon, HashIcon, IdCardIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
+import { BarcodeFullscreen } from '@/components/BarcodeFullscreen'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
@@ -50,6 +51,7 @@ type DocPassProps = {
 
 export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProps) {
   const [viewerPath, setViewerPath] = useState<string | null>(null)
+  const [barcodeOpen, setBarcodeOpen] = useState(false)
   const photoPaths = (['front', 'back'] as const).filter(side => doc.photos[side] !== undefined)
   // the face defaults to the first available photo; an explicit cover picks side + framing
   const faceSide = doc.cover?.side ?? photoPaths[0]
@@ -166,7 +168,9 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
               <div className="flex flex-col gap-2.5 px-5 pt-4 pb-1">
                 {barcodeHtml !== null ? (
                   // always a white plate so barcodes stay scanner-readable in dark mode
-                  <div
+                  <button
+                    onClick={() => setBarcodeOpen(true)}
+                    aria-label="Show barcode fullscreen"
                     className={`rounded-md bg-white px-3 py-2 ${
                       squareFormats.has(doc.barcode.format)
                         ? 'flex justify-center [&_svg]:h-auto [&_svg]:w-40'
@@ -227,6 +231,15 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
 
       <AnimatePresence>
         {viewerPath !== null && <PhotoViewer path={viewerPath} onClose={() => setViewerPath(null)} />}
+        {barcodeOpen && typeof svg === 'string' && barcode !== undefined && (
+          <BarcodeFullscreen
+            name={doc.name}
+            value={barcode.value}
+            format={barcode.format}
+            svg={svg}
+            onClose={() => setBarcodeOpen(false)}
+          />
+        )}
       </AnimatePresence>
     </motion.div>
   )

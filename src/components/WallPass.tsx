@@ -2,6 +2,7 @@ import { CalendarIcon, ChevronDownIcon, PencilIcon, StarIcon, Trash2Icon } from 
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { BarcodeFullscreen } from '@/components/BarcodeFullscreen'
 import { BrandMark } from '@/components/BrandMark'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
@@ -77,6 +78,7 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
     return { __html: stretch && !square ? svg.replace('<svg', '<svg preserveAspectRatio="none"') : svg }
   }, [svg, stretch, square])
   const [viewerPath, setViewerPath] = useState<string | null>(null)
+  const [barcodeOpen, setBarcodeOpen] = useState(false)
   const photoPaths = (['front', 'back'] as const).filter(side => card.photos[side] !== undefined)
 
   return (
@@ -86,7 +88,9 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
       <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && plateHtml !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
         {plateHtml !== null ? (
           // always a white plate so barcodes stay scanner-readable in dark mode
-          <div
+          <button
+            onClick={() => setBarcodeOpen(true)}
+            aria-label="Show barcode fullscreen"
             className={`rounded-md bg-white px-3 py-2 ${
               square
                 ? `flex justify-center ${stretch ? 'min-h-0 flex-1 [&_svg]:h-full [&_svg]:max-w-full' : '[&_svg]:h-auto [&_svg]:w-40'}`
@@ -167,6 +171,15 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
 
       <AnimatePresence>
         {viewerPath !== null && <PhotoViewer path={viewerPath} onClose={() => setViewerPath(null)} />}
+        {barcodeOpen && typeof svg === 'string' && (
+          <BarcodeFullscreen
+            name={card.name}
+            value={card.value}
+            format={card.format}
+            svg={svg}
+            onClose={() => setBarcodeOpen(false)}
+          />
+        )}
       </AnimatePresence>
     </>
   )
