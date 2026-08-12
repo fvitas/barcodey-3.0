@@ -12,7 +12,7 @@ import {
   userCountry,
   type Brand,
 } from '@/lib/brands'
-import { suggestBrandUrl } from '@/lib/feedback'
+import { SuggestBrandDrawer } from '@/components/SuggestBrandDrawer'
 import { pressable } from '@/lib/utils'
 
 type BrandPickerProps = {
@@ -54,6 +54,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
   const [catalog, setCatalog] = useState<Brand[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [query, setQuery] = useState('')
+  const [suggestOpen, setSuggestOpen] = useState(false)
   const country = userCountry()
   // state, not a ref: remounting drawer content re-attaches the virtualizer only via a render
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null)
@@ -204,11 +205,13 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
             </button>
             <p className="pt-3 text-center text-[0.8125rem] font-medium text-muted-foreground">
               Missing a brand?{' '}
-              <a href={suggestBrandUrl(query)} target="_blank" rel="noreferrer" className="font-bold text-primary">
-                Suggest it on GitHub ↗
-              </a>
+              <button onClick={() => setSuggestOpen(true)} className="font-bold text-primary">
+                Suggest it on GitHub
+              </button>
             </p>
           </div>
+
+          <SuggestBrandDrawer open={suggestOpen} initialName={query.trim()} onClose={() => setSuggestOpen(false)} />
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.NestedRoot>

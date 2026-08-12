@@ -33,6 +33,16 @@ export function userCountry(): string | undefined {
   }
 }
 
+export function userCountryName(): string {
+  const region = userCountry()
+  if (region === undefined) return ''
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(region.toUpperCase()) ?? ''
+  } catch {
+    return ''
+  }
+}
+
 function inCountry(brand: Brand, country: string | undefined): boolean {
   return country !== undefined && (brand.countries.includes(country) || brand.countries.includes('001'))
 }
