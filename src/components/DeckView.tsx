@@ -415,6 +415,8 @@ export function DeckView({
     if (gesture.current !== null) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     if (open && cardId !== expandedCardId) return
+    // details buttons handle themselves — capturing would retarget their pointerup to the card
+    if (open && event.target instanceof Element && event.target.closest('button') !== null) return
     cancelAnimationFrame(raf.current)
     clearTimeout(wheelIdle.current)
     gesture.current = {
