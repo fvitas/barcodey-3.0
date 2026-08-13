@@ -44,6 +44,24 @@ const readerOptions: ReaderOptions = {
   maxNumberOfSymbols: 1,
 }
 
+type ZxingFormat = NonNullable<ReaderOptions['formats']>[number]
+
+const zxingNames: Record<BarcodeFormat, ZxingFormat> = {
+  ean13: 'EAN13',
+  ean8: 'EAN8',
+  upca: 'UPCA',
+  upce: 'UPCE',
+  code128: 'Code128',
+  code39: 'Code39',
+  code93: 'Code93',
+  codabar: 'Codabar',
+  itf: 'ITF',
+  qrcode: 'QRCode',
+  aztec: 'Aztec',
+  datamatrix: 'DataMatrix',
+  pdf417: 'PDF417',
+}
+
 const mlkitFormats: Record<string, BarcodeFormat> = {
   EAN_13: 'ean13',
   EAN_8: 'ean8',
@@ -61,9 +79,11 @@ const mlkitFormats: Record<string, BarcodeFormat> = {
 }
 
 // browser path: camera frames and picked image files both decode here
-export async function scanImage(image: ImageData | Blob): Promise<ScanResult | null> {
+export async function scanImage(image: ImageData | Blob, formats?: BarcodeFormat[]): Promise<ScanResult | null> {
   const { readBarcodes } = await import('zxing-wasm/reader')
-  const results = await readBarcodes(image, readerOptions)
+  const options =
+    formats === undefined ? readerOptions : { ...readerOptions, formats: formats.map(format => zxingNames[format]) }
+  const results = await readBarcodes(image, options)
   const first = results[0]
   if (!first || !first.isValid) return null
   const format = zxingFormats[first.format]

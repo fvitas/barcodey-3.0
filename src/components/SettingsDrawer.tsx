@@ -1,6 +1,7 @@
-import { ExternalLinkIcon } from 'lucide-react'
+import { ChevronRightIcon, DownloadIcon, ExternalLinkIcon, UploadIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Drawer } from 'vaul'
+import { TransferDrawer } from '@/components/TransferDrawer'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
@@ -36,6 +37,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   const { method } = useDocumentsLock()
   const importInputRef = useRef<HTMLInputElement>(null)
   const [pendingImport, setPendingImport] = useState<Wallet | null>(null)
+  const [transferOpen, setTransferOpen] = useState(false)
   const [importError, setImportError] = useState(false)
   const [remindersDenied, setRemindersDenied] = useState(false)
 
@@ -112,7 +114,6 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           <div className="px-5 pt-3 pb-8">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Settings</Drawer.Title>
-
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Appearance
             </span>
@@ -187,20 +188,26 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             </div>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-              Backup
+              Your data
             </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={handleExport}
-                className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
-              >
-                Export cards
+            <div className="divide-y divide-border/60 overflow-hidden rounded-xl bg-muted/60">
+              <button onClick={handleExport} className={`${pressable} flex w-full items-center justify-between px-4 py-3`}>
+                <span className="text-sm font-semibold text-foreground">Export cards</span>
+                <DownloadIcon className="size-4 text-muted-foreground/70" />
               </button>
               <button
                 onClick={() => importInputRef.current?.click()}
-                className={`${pressable} rounded-4xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}
+                className={`${pressable} flex w-full items-center justify-between px-4 py-3`}
               >
-                Import backup
+                <span className="text-sm font-semibold text-foreground">Import backup</span>
+                <UploadIcon className="size-4 text-muted-foreground/70" />
+              </button>
+              <button
+                onClick={() => setTransferOpen(true)}
+                className={`${pressable} flex w-full items-center justify-between px-4 py-3`}
+              >
+                <span className="text-sm font-semibold text-foreground">Move to another device</span>
+                <ChevronRightIcon className="size-4 text-muted-foreground/70" />
               </button>
             </div>
             {importError && (
@@ -271,6 +278,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.NestedRoot>
+
+      <TransferDrawer open={transferOpen} onOpenChange={setTransferOpen} onComplete={onClose} />
     </Drawer.Root>
   )
 }

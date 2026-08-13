@@ -1,16 +1,20 @@
 import { CameraIcon, SwitchCameraIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import type { BarcodeFormat } from '@/lib/model'
 import { scanImage, type ScanResult } from '@/lib/scanner'
 
 type CameraFacing = 'environment' | 'user'
 
 type CameraScannerProps = {
   onDetected: (result: ScanResult) => void
+  continuous?: boolean // keep decoding after a hit (animated transfer frames)
+  formats?: BarcodeFormat[]
 }
 
-export function CameraScanner({ onDetected }: CameraScannerProps) {
+export function CameraScanner({ onDetected, continuous = false, formats }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const onDetectedRef = useRef(onDetected)
+  const formatsRef = useRef(formats)
   // back camera by default, flip icon switches to front (e.g. scanning a code off another screen)
   const [facing, setFacing] = useState<CameraFacing>('environment')
   const [canFlip, setCanFlip] = useState(false)
@@ -19,6 +23,10 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
   useEffect(() => {
     onDetectedRef.current = onDetected
   }, [onDetected])
+
+  useEffect(() => {
+    formatsRef.current = formats
+  }, [formats])
 
   useEffect(() => {
     let cancelled = false
@@ -49,9 +57,12 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
           context.canvas.width,
           context.canvas.height,
         )
-        const result = await scanImage(context.getImageData(0, 0, context.canvas.width, context.canvas.height))
+        const result = await scanImage(
+          context.getImageData(0, 0, context.canvas.width, context.canvas.height),
+          formatsRef.current,
+        )
         if (result !== null && !cancelled) {
-          window.clearInterval(timer)
+          if (!continuous) window.clearInterval(timer)
           onDetectedRef.current(result)
         }
       } catch {
@@ -111,7 +122,7 @@ export function CameraScanner({ onDetected }: CameraScannerProps) {
       window.clearInterval(timer)
       stream?.getTracks().forEach(track => track.stop())
     }
-  }, [facing])
+  }, [facing, continuous])
 
   if (error !== null) {
     return (
