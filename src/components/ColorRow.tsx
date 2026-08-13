@@ -89,7 +89,10 @@ export function ColorRow({ theme, color, photos, onPickTheme, onPickColor }: Col
 
       {pickerOpen && (
         // vaul otherwise reads a downward saturation/hue drag as drag-to-close
-        <div className="mt-3 [&_.react-colorful]:h-40 [&_.react-colorful]:w-full" data-vaul-no-drag>
+        <div
+          className="mt-3 [&_.react-colorful]:h-40 [&_.react-colorful]:w-full [&_.react-colorful\_\_pointer]:shadow-[0_3px_8px_rgba(15,23,42,0.28),0_1px_1px_rgba(15,23,42,0.16)]"
+          data-vaul-no-drag
+        >
           <HexColorPicker color={color ?? '#4f46e5'} onChange={onPickColor} />
         </div>
       )}

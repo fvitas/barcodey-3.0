@@ -92,7 +92,9 @@ export function BrandField({ brandId, brandBg, onPick, onClear, onToggleBg }: Br
           <button onClick={() => onToggleBg(!showBg)} className={`${pressable} mt-2.5 flex items-center gap-2`}>
             <span
               className={`flex size-4.5 items-center justify-center rounded-[5px] ${
-                showBg ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground/50'
+                showBg
+                  ? 'bg-primary text-primary-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]'
+                  : 'bg-input/60 shadow-[inset_0_1px_2px_rgba(15,23,42,0.18)]'
               }`}
             >
               {showBg && <CheckIcon className="size-3.5" strokeWidth={3} />}
