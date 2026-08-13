@@ -110,10 +110,13 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[calc(100dvh-3.5rem)] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
+          <div className="px-5 pt-3">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Settings</Drawer.Title>
+          </div>
+
+          <div className="overflow-y-auto px-5 pb-8">
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
               Appearance
             </span>
