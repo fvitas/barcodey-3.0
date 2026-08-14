@@ -22,3 +22,6 @@ project(':capacitor-preferences').projectDir = new File('../node_modules/.pnpm/@
 
 include ':capacitor-share'
 project(':capacitor-share').projectDir = new File('../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share/android')
+
+include ':capawesome-capacitor-app-shortcuts'
+project(':capawesome-capacitor-app-shortcuts').projectDir = new File('../node_modules/.pnpm/@capawesome+capacitor-app-shortcuts@8.0.1_@capacitor+core@8.5.0/node_modules/@capawesome/capacitor-app-shortcuts/android')

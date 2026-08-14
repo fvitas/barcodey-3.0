@@ -18,6 +18,8 @@ PODS:
     - Capacitor
   - CapacitorShare (8.0.1):
     - Capacitor
+  - CapawesomeCapacitorAppShortcuts (8.0.1):
+    - Capacitor
   - GoogleDataTransport (10.1.1):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
@@ -76,6 +78,7 @@ DEPENDENCIES:
   - "CapacitorMlkitBarcodeScanning (from `../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_@capacitor+core@8.5.0/node_modules/@capacitor-mlkit/barcode-scanning`)"
   - "CapacitorPreferences (from `../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences`)"
   - "CapacitorShare (from `../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share`)"
+  - "CapawesomeCapacitorAppShortcuts (from `../../node_modules/.pnpm/@capawesome+capacitor-app-shortcuts@8.0.1_@capacitor+core@8.5.0/node_modules/@capawesome/capacitor-app-shortcuts`)"
 
 SPEC REPOS:
   trunk:
@@ -111,6 +114,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences"
   CapacitorShare:
     :path: "../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share"
+  CapawesomeCapacitorAppShortcuts:
+    :path: "../../node_modules/.pnpm/@capawesome+capacitor-app-shortcuts@8.0.1_@capacitor+core@8.5.0/node_modules/@capawesome/capacitor-app-shortcuts"
 
 SPEC CHECKSUMS:
   AparajitaCapacitorBiometricAuth: 1ae24ba90d7977dffb4bc9040f374a807a510c98
@@ -122,6 +127,7 @@ SPEC CHECKSUMS:
   CapacitorMlkitBarcodeScanning: 31c6af9f39873ff69e16ed5b39ebe2e1915f16fe
   CapacitorPreferences: cca2021f386efb75947c850334447d9ff22b14f1
   CapacitorShare: 0c58305114538568059bfc07111f22dcb9cb2a82
+  CapawesomeCapacitorAppShortcuts: 89f11fdbe7564e58430f4e7d67b0066d082c00ec
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleMLKit: ddd51d7dff36ff28defa69afedd9cdce684fd857
   GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
@@ -135,6 +141,6 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
 
-PODFILE CHECKSUM: 2d12c8c488b96d9dbfef35ba8a13bc9cecd006f3
+PODFILE CHECKSUM: c7e46381cae38b28511c204d4f8040ebe8b83b3f
 
 COCOAPODS: 1.17.0

@@ -7,6 +7,7 @@ import { warmBarcodeRenderer } from '@/hooks/use-barcode-svg'
 import { useExpiryReminders } from '@/hooks/use-expiry-reminders'
 import type { Card } from '@/lib/model'
 import { onNotificationTap, type NotificationTap } from '@/lib/notifications'
+import { onShortcutClick, shortcutItems, syncAppShortcuts } from '@/lib/shortcuts'
 import { DocumentsScreen } from '@/screens/DocumentsScreen'
 import { FolderScreen } from '@/screens/FolderScreen'
 import { FoldersScreen } from '@/screens/FoldersScreen'
@@ -45,8 +46,14 @@ function AppShell() {
     }
   })
 
-  // the listener resolves after the continuity restore below, so a cold-start tap wins
+  // the listeners resolve after the continuity restore below, so a cold-start tap wins
   useEffect(() => onNotificationTap(tap => handleTap.current(tap)), [])
+  useEffect(() => onShortcutClick(id => handleTap.current({ kind: 'card', id })), [])
+
+  useEffect(() => {
+    if (!wallet.ready || !ready) return
+    void syncAppShortcuts(shortcutItems(wallet.cards, state.sort))
+  }, [wallet.ready, ready, wallet.cards, state.sort])
 
   // continuity: reopen where the app was left, once, from the default entry only
   useEffect(() => {

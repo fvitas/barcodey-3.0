@@ -41,6 +41,9 @@ importers:
       '@capacitor/share':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
+      '@capawesome/capacitor-app-shortcuts':
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.5.0)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -404,6 +407,11 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capawesome/capacitor-app-shortcuts@8.0.1':
+    resolution: {integrity: sha512-ajAT934RQhl84Zml624s1L33atSGwkwNJeC8BA4em13jaqLEFYMrHIbrwsVfadAa5fZEADsvXNoDqlykWzNN6A==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@dnd-kit/accessibility@3.1.1':
     resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
@@ -3976,6 +3984,10 @@ snapshots:
       '@capacitor/core': 8.5.0
 
   '@capacitor/synapse@1.0.4': {}
+
+  '@capawesome/capacitor-app-shortcuts@8.0.1(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
 
   '@dnd-kit/accessibility@3.1.1(react@19.2.8)':
     dependencies:
